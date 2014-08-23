@@ -1071,10 +1071,6 @@ sdhci_write(void *opaque, hwaddr offset, uint64_t val, unsigned size)
         MASKED_WRITE(s->hostctl, mask, value);
         MASKED_WRITE(s->pwrcon, mask >> 8, value >> 8);
         MASKED_WRITE(s->wakcon, mask >> 24, value >> 24);
-        if (!(s->prnsts & SDHC_CARD_PRESENT) || ((s->pwrcon >> 1) & 0x7) < 5 ||
-                !(s->capareg & (1 << (31 - ((s->pwrcon >> 1) & 0x7))))) {
-            s->pwrcon &= ~SDHC_POWER_ON;
-        }
         break;
     case SDHC_CLKCON:
         if (!(mask & 0xFF000000)) {
