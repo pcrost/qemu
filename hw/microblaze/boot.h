@@ -3,6 +3,8 @@
 
 #include "hw/hw.h"
 
+#include "target-microblaze/cpu.h"
+
 void microblaze_load_kernel(MicroBlazeCPU *cpu, hwaddr ddr_base,
                             uint32_t ramsize,
                             const char *initrd_filename,
