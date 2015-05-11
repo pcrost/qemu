@@ -117,7 +117,11 @@ void microblaze_load_kernel(MicroBlazeCPU *cpu, hwaddr ddr_base,
     char *filename = NULL;
 
     machine_opts = qemu_get_machine_opts();
+#ifdef TARGET_MULTI
+    kernel_filename = qemu_opt_get(machine_opts, "firmware");
+#else
     kernel_filename = qemu_opt_get(machine_opts, "kernel");
+#endif
     kernel_cmdline = qemu_opt_get(machine_opts, "append");
     dtb_arg = qemu_opt_get(machine_opts, "dtb");
     /* default to pcbios dtb as passed by machine_init */
