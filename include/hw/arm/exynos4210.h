@@ -29,6 +29,8 @@
 #include "qemu-common.h"
 #include "exec/memory.h"
 
+#include "target-arm/cpu.h"
+
 #define EXYNOS4210_NCPUS                    2
 
 #define EXYNOS4210_DRAM0_BASE_ADDR          0x40000000

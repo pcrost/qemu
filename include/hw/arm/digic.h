@@ -23,6 +23,8 @@
 #include "hw/timer/digic-timer.h"
 #include "hw/char/digic-uart.h"
 
+#include "target-arm/cpu.h"
+
 #define TYPE_DIGIC "digic"
 
 #define DIGIC(obj) OBJECT_CHECK(DigicState, (obj), TYPE_DIGIC)

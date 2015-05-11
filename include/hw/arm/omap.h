@@ -21,6 +21,8 @@
 # define hw_omap_h		"omap.h"
 #include "hw/irq.h"
 
+#include "target-arm/cpu.h"
+
 # define OMAP_EMIFS_BASE	0x00000000
 # define OMAP2_Q0_BASE		0x00000000
 # define OMAP_CS0_BASE		0x00000000

@@ -11,6 +11,9 @@
 #ifndef ARM_MISC_H
 #define ARM_MISC_H 1
 
+#include "qemu-common.h"
+#include "target-arm/cpu.h"
+
 #include "exec/memory.h"
 #include "hw/irq.h"
 #include "qemu/notify.h"
