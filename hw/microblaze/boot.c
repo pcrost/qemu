@@ -61,6 +61,7 @@ static void main_cpu_reset(void *opaque)
     }
 }
 
+#ifndef TARGET_MULTI
 static int microblaze_load_dtb(hwaddr addr,
                                uint32_t ramsize,
                                uint32_t initrd_start,
@@ -98,6 +99,7 @@ static int microblaze_load_dtb(hwaddr addr,
     cpu_physical_memory_write(addr, fdt, fdt_size);
     return fdt_size;
 }
+#endif
 
 static uint64_t translate_kernel_address(void *opaque, uint64_t addr)
 {
@@ -204,12 +206,14 @@ void microblaze_load_kernel(MicroBlazeCPU *cpu, hwaddr ddr_base,
         }
         /* Provide a device-tree.  */
         boot_info.fdt = boot_info.cmdline + 4096;
+#ifndef TARGET_MULTI
         microblaze_load_dtb(boot_info.fdt, ram_size,
                             boot_info.initrd_start,
                             boot_info.initrd_end,
                             kernel_cmdline,
                             /* Preference a -dtb argument */
                             dtb_arg ? dtb_arg : filename);
+#endif
     }
     g_free(filename);
 }
