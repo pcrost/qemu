@@ -26,6 +26,11 @@
 #include "hw/loader.h"
 #include "hw/misc/zynq-xadc.h"
 #include "hw/ssi.h"
+
+#ifdef TARGET_MICROBLAZE
+#include "hw/microblaze/boot.h"
+#endif
+
 #include "qemu/error-report.h"
 
 #define NUM_SPI_FLASHES 4
@@ -150,6 +155,9 @@ static void zynq_init(MachineState *machine)
     const char *initrd_filename = machine->initrd_filename;
     ObjectClass *cpu_oc;
     ARMCPU *cpu;
+#ifdef TARGET_MICROBLAZE
+    MicroBlazeCPU *mb_cpu;
+#endif
     MemoryRegion *address_space_mem = get_system_memory();
     MemoryRegion *ext_ram = g_new(MemoryRegion, 1);
     MemoryRegion *ocm_ram = g_new(MemoryRegion, 1);
@@ -199,6 +207,13 @@ static void zynq_init(MachineState *machine)
     if (ram_size > 0x80000000) {
         ram_size = 0x80000000;
     }
+
+#ifdef TARGET_MICROBLAZE
+    mb_cpu = MICROBLAZE_CPU(object_new(TYPE_MICROBLAZE_CPU));
+    object_property_set_bool(OBJECT(mb_cpu), true, "realized", &error_abort);
+    microblaze_load_kernel(mb_cpu, 0, ram_size, NULL, NULL, NULL);
+#endif
+
 
     /* DDR remapped to address zero.  */
     memory_region_allocate_system_memory(ext_ram, NULL, "zynq.ext_ram",
