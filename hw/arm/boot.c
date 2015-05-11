@@ -829,7 +829,9 @@ static void arm_load_kernel_notify(Notifier *notifier, void *data)
     info->is_linux = is_linux;
 
     for (cs = CPU(cpu); cs; cs = CPU_NEXT(cs)) {
-        ARM_CPU(cs)->env.boot_info = info;
+        if (object_dynamic_cast(OBJECT(cs), TYPE_ARM_CPU)) {
+            ARM_CPU(cs)->env.boot_info = info;
+        }
     }
 }
 
@@ -847,7 +849,9 @@ void arm_load_kernel(ARMCPU *cpu, struct arm_boot_info *info)
      * arranging that we start it correctly.
      */
     for (cs = CPU(cpu); cs; cs = CPU_NEXT(cs)) {
-        qemu_register_reset(do_cpu_reset, ARM_CPU(cs));
+        if (object_dynamic_cast(OBJECT(cs), TYPE_ARM_CPU)) {
+            qemu_register_reset(do_cpu_reset, ARM_CPU(cs));
+        }
     }
 }
 
