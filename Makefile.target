@@ -13,6 +13,12 @@ QEMU_CFLAGS += -I../linux-headers
 endif
 QEMU_CFLAGS += -I.. -I$(SRC_PATH)/target-$(TARGET_BASE_ARCH) -DNEED_CPU_H
 
+ifeq ($(TARGET_BASE_ARCH), multi)
+ARCH_DIRS=$(MULTI_BASE_TARGETS)
+else
+ARCH_DIRS=$(TARGET_BASE_ARCH)
+endif
+
 QEMU_CFLAGS+=-I$(SRC_PATH)/include
 
 ifdef CONFIG_USER_ONLY
@@ -84,15 +90,18 @@ all: $(PROGS) stap
 
 #########################################################
 # cpu emulator library
-obj-y = exec.o translate-all.o cpu-exec.o
+obj-y += exec.o
+arch-obj-$(call lnot,$(TARGET_MULTI)) += translate-all.o
 obj-y += translate-common.o
+arch-obj-$(call lnot,$(TARGET_MULTI)) += cpu-exec.o
 obj-y += cpu-exec-common.o
-obj-y += tcg/tcg.o tcg/tcg-op.o tcg/optimize.o
-obj-$(CONFIG_TCG_INTERPRETER) += tci.o
+arch-obj-$(call lnot,$(TARGET_MULTI)) += tcg/tcg.o tcg/tcg-op.o tcg/optimize.o
+arch-obj-$(call land,$(CONFIG_TCG_INTERPRETER),$(call lnot,$(TARGET_MULTI))) += tci.o
 obj-y += tcg/tcg-common.o
 obj-$(CONFIG_TCG_INTERPRETER) += disas/tci.o
 obj-y += fpu/softfloat.o
-obj-y += target-$(TARGET_BASE_ARCH)/
+arch-obj-y += target-$(TARGET_BASE_ARCH)/
+obj-y += $(foreach a, $(ARCH_DIRS), target-$(a)/hw/)
 obj-y += disas.o
 obj-$(call notempty,$(TARGET_XML_FILES)) += gdbstub-xml.o
 obj-$(call lnot,$(CONFIG_KVM)) += kvm-stub.o
@@ -135,7 +144,8 @@ obj-y += arch_init.o cpus.o monitor.o gdbstub.o balloon.o ioport.o numa.o
 obj-y += qtest.o bootdevice.o
 obj-y += hw/
 obj-$(CONFIG_KVM) += kvm-all.o
-obj-y += memory.o cputlb.o
+obj-y += memory.o
+arch-obj-$(call lnot,$(TARGET_MULTI)) += cputlb.o
 obj-y += memory_mapping.o
 obj-y += dump.o
 obj-y += migration/ram.o migration/savevm.o
@@ -151,7 +161,7 @@ obj-$(call lnot,$(CONFIG_XEN_I386)) += xen-hvm-stub.o
 ifeq ($(TARGET_NAME), sparc64)
 obj-y += hw/sparc64/
 else
-obj-y += hw/$(TARGET_BASE_ARCH)/
+obj-y += $(foreach a, $(ARCH_DIRS), hw/$(a)/)
 endif
 
 GENERATED_HEADERS += hmp-commands.h hmp-commands-info.h qmp-commands-old.h
@@ -162,6 +172,17 @@ endif # CONFIG_SOFTMMU
 %/translate.o: QEMU_CFLAGS += $(TRANSLATE_OPT_CFLAGS)
 
 dummy := $(call unnest-vars,,obj-y)
+dummy := $(call unnest-vars,,arch-obj-y)
+
+arch-obj.o: $(arch-obj-y)
+	$(call quiet-command,$(LD) $(filter-out %.mak, $^) -r -o $@,"LINK $@")
+	$(call quiet-command,$(OBJCOPY) -w -L "*" $@,"OBJCOPY $@")
+
+.PHONY: .FORCE
+
+%/arch-obj.o: .FORCE
+	$(call quiet-command,$(MAKE) $(SUBDIR_MAKEFLAGS) -C $* V="$(V)" TARGET_DIR="$*/" arch-obj.o,)
+
 all-obj-y := $(obj-y)
 
 target-obj-y :=
@@ -182,6 +203,8 @@ target-obj-y := $(target-obj-y-save)
 all-obj-y += $(common-obj-y)
 all-obj-y += $(target-obj-y)
 all-obj-y += $(qom-obj-y)
+all-obj-y += $(arch-obj-y)
+all-obj-y += $(foreach a, $(MULTI_TARGETS), ../$(a)/arch-obj.o)
 all-obj-$(CONFIG_SOFTMMU) += $(block-obj-y)
 all-obj-$(CONFIG_USER_ONLY) += $(crypto-aes-obj-y)
 all-obj-$(CONFIG_SOFTMMU) += $(crypto-obj-y)

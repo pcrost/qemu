@@ -1,7 +1,7 @@
-obj-y += xtensa-semi.o
-obj-y += core-dc232b.o
-obj-y += core-dc233c.o
-obj-y += core-fsf.o
-obj-$(CONFIG_SOFTMMU) += monitor.o
-obj-y += translate.o op_helper.o helper.o cpu.o
-obj-y += gdbstub.o
+arch-obj-y += xtensa-semi.o
+arch-obj-y += core-dc232b.o
+arch-obj-y += core-dc233c.o
+arch-obj-y += core-fsf.o
+arch-obj-$(CONFIG_SOFTMMU) += monitor.o
+arch-obj-y += translate.o op_helper.o helper.o cpu.o
+arch-obj-y += gdbstub.o
