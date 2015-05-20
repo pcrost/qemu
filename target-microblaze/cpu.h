@@ -35,6 +35,8 @@ typedef struct CPUMBState CPUMBState;
 #include "mmu.h"
 #endif
 
+#ifndef TARGET_MULTI
+
 #define EXCP_MMU        1
 #define EXCP_IRQ        2
 #define EXCP_BREAK      3
@@ -44,13 +46,17 @@ typedef struct CPUMBState CPUMBState;
 /* MicroBlaze-specific interrupt pending bits.  */
 #define CPU_INTERRUPT_NMI       CPU_INTERRUPT_TGT_EXT_3
 
+#endif /* TARGET_MULTI */
+
 /* Meanings of the MBCPU object's two inbound GPIO lines */
 #define MB_CPU_IRQ 0
 #define MB_CPU_FIR 1
 
-/* Register aliases. R0 - R15 */
-#define R_SP     1
+#ifndef TARGET_MULTI
+
+/* Register aliases. R1 - R15 */
 #define SR_PC    0
+#define R_SP     1
 #define SR_MSR   1
 #define SR_EAR   3
 #define SR_ESR   5
@@ -110,6 +116,11 @@ typedef struct CPUMBState CPUMBState;
 #define FSR_OF          (1<<2) /* Overflow */
 #define FSR_UF          (1<<1) /* Underflow */
 #define FSR_DO          (1<<0) /* Denormalized operand error */
+
+/* The Microblaze bootloader configures some of the PVRs in a board specific
+ * way as a reset process. This should go away with PVR property QOMification
+ * and then the PVRs can be made private to CPUs.
+ */
 
 /* Version reg.  */
 /* Basic PVR mask */
@@ -211,9 +222,13 @@ typedef struct CPUMBState CPUMBState;
 /* MSR Reset value PVR mask */
 #define PVR11_MSR_RESET_VALUE_MASK      0x000007FF
 
+#endif /* TARGET_MULTI */
+
 #define C_PVR_NONE                      0
 #define C_PVR_BASIC                     1
 #define C_PVR_FULL                      2
+
+#ifndef TARGET_MULTI
 
 /* CPU flags.  */
 
@@ -225,13 +240,15 @@ typedef struct CPUMBState CPUMBState;
 #define CC_NE  1
 #define CC_EQ  0
 
-#define NB_MMU_MODES    3
-
 #define STREAM_EXCEPTION (1 << 0)
 #define STREAM_ATOMIC    (1 << 1)
 #define STREAM_TEST      (1 << 2)
 #define STREAM_CONTROL   (1 << 3)
 #define STREAM_NONBLOCK  (1 << 4)
+
+#endif /* TARGET_MULTI */
+
+#define NB_MMU_MODES    3
 
 struct CPUMBState {
     uint32_t debug;
@@ -277,6 +294,8 @@ struct CPUMBState {
 };
 
 #include "cpu-qom.h"
+
+#ifndef TARGET_MULTI
 
 void mb_tcg_init(void);
 MicroBlazeCPU *cpu_mb_init(const char *cpu_model);
@@ -338,4 +357,5 @@ void mb_cpu_unassigned_access(CPUState *cpu, hwaddr addr,
 
 #include "exec/exec-all.h"
 
+#endif /* !TARGET_MULTI */
 #endif

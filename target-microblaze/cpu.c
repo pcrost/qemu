@@ -25,6 +25,7 @@
 #include "qemu-common.h"
 #include "hw/qdev-properties.h"
 #include "migration/vmstate.h"
+#include "tcg/tcg.h"
 
 static const struct {
     const char *name;
@@ -195,6 +196,7 @@ static void mb_cpu_initfn(Object *obj)
     CPUMBState *env = &cpu->env;
     static bool tcg_initialized;
 
+    CPU_SET_QOM_HOOKS(cs);
     cs->env_ptr = env;
     cpu_exec_init(cs, &error_abort);
 
