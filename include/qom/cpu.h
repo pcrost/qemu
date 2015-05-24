@@ -24,6 +24,7 @@
 #include <setjmp.h>
 #include "hw/qdev-core.h"
 #include "disas/bfd.h"
+#include "exec/cpu-common.h"
 #include "exec/hwaddr.h"
 #include "exec/memattrs.h"
 #include "qemu/queue.h"

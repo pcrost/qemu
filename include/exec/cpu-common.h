@@ -53,6 +53,10 @@ typedef uintptr_t ram_addr_t;
 #  define RAM_ADDR_FMT "%" PRIxPTR
 #endif
 
+#ifndef CONFIG_USER_ONLY
+typedef ram_addr_t tb_page_addr_t;
+#endif
+
 extern ram_addr_t ram_size;
 ram_addr_t get_current_ram_size(void);
 

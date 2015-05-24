@@ -30,8 +30,6 @@
    type.  */
 #if defined(CONFIG_USER_ONLY)
 typedef abi_ulong tb_page_addr_t;
-#else
-typedef ram_addr_t tb_page_addr_t;
 #endif
 
 /* is_jmp field values */
