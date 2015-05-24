@@ -744,7 +744,7 @@ static inline void code_gen_alloc(size_t tb_size)
 /* Must be called before using the QEMU cpus. 'tb_size' is the size
    (in bytes) allocated to the translation buffer. Zero means default
    size. */
-void tcg_exec_init(unsigned long tb_size)
+static void do_tcg_exec_init(unsigned long tb_size)
 {
     cpu_gen_init();
     page_init();
@@ -754,6 +754,11 @@ void tcg_exec_init(unsigned long tb_size)
        initialize the prologue now.  */
     tcg_prologue_init(&tcg_ctx);
 #endif
+}
+
+static __attribute__((constructor)) void register_tcg_exec_init(void)
+{
+    tcg_exec_init_add(do_tcg_exec_init);
 }
 
 bool tcg_enabled(void)

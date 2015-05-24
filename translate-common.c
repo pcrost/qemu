@@ -54,3 +54,33 @@ static void tcg_handle_interrupt(CPUState *cpu, int mask)
 
 CPUInterruptHandler cpu_interrupt_handler = tcg_handle_interrupt;
 #endif
+
+typedef struct TCGExecInitFn {
+    void (*do_tcg_exec_init)(unsigned long tb_size);
+    QLIST_ENTRY(TCGExecInitFn) list;
+} TCGExecInitFn;
+
+static QLIST_HEAD(, TCGExecInitFn) tcg_exec_init_list;
+
+void tcg_exec_init_add(void (*fn)(unsigned long))
+{
+    static bool inited;
+    TCGExecInitFn *lelem = g_malloc0(sizeof *lelem);
+
+    if (!inited) {
+        inited = true;
+        QLIST_INIT(&tcg_exec_init_list);
+    }
+
+    lelem->do_tcg_exec_init = fn;
+    QLIST_INSERT_HEAD(&tcg_exec_init_list, lelem, list);
+}
+
+void tcg_exec_init(unsigned long tb_size)
+{
+    TCGExecInitFn *t;
+
+    QLIST_FOREACH(t, &tcg_exec_init_list, list) {
+        t->do_tcg_exec_init(tb_size);
+    }
+}
