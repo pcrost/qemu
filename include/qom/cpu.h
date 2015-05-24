@@ -761,6 +761,27 @@ void QEMU_NORETURN cpu_abort(CPUState *cpu, const char *fmt, ...)
     GCC_FMT_ATTR(2, 3);
 void cpu_exec_exit(CPUState *cpu);
 
+/**
+ * cpu_can_do_io:
+ * @cpu: The CPU for which to check IO.
+ *
+ * Deterministic execution requires that IO only be performed on the last
+ * instruction of a TB so that interrupts take effect immediately.
+ *
+ * Returns: %true if memory-mapped IO is safe, %false otherwise.
+ */
+static inline bool cpu_can_do_io(CPUState *cpu)
+{
+    if (!use_icount) {
+        return true;
+    }
+    /* If not executing code then assume we are ok.  */
+    if (cpu->current_tb == NULL) {
+        return true;
+    }
+    return cpu->can_do_io != 0;
+}
+
 #ifdef CONFIG_SOFTMMU
 extern const struct VMStateDescription vmstate_cpu_common;
 #else
