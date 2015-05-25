@@ -509,7 +509,11 @@ typedef struct CPUARMState {
 
 #include "cpu-qom.h"
 
-ARMCPU *cpu_arm_init(const char *cpu_model);
+static inline ARMCPU *cpu_arm_init(const char *cpu_model)
+{
+    return ARM_CPU(cpu_generic_init(TYPE_ARM_CPU, cpu_model));
+}
+
 target_ulong do_arm_semihosting(CPUARMState *env);
 void aarch64_sync_32_to_64(CPUARMState *env);
 void aarch64_sync_64_to_32(CPUARMState *env);
