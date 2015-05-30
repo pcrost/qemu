@@ -16,8 +16,10 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CPU_DEFS_H
-#define CPU_DEFS_H
+
+/* No multiple include guard intended. Multi-arch setups may require multiple
+ * cpu.h's included which means this can be and should be reached twice.
+ */
 
 #ifndef NEED_CPU_H
 #error cpu.h included from common code
@@ -35,15 +37,24 @@
 
 #include "exec/target-long.h"
 
+#undef CPU_COMMON
+#undef CPU_COMMON_TLB
+
 #if !defined(CONFIG_USER_ONLY)
+
+#undef CPU_VTLB_SIZE
 /* use a fully associative victim tlb of 8 entries */
 #define CPU_VTLB_SIZE 8
 
+#undef CPU_TLB_ENTRY_BITS
 #if HOST_LONG_BITS == 32 && TARGET_LONG_BITS == 32
 #define CPU_TLB_ENTRY_BITS 4
 #else
 #define CPU_TLB_ENTRY_BITS 5
 #endif
+
+#undef CPU_TLB_ENTRY_SIZE
+#define CPU_TLB_ENTRY_SIZE (1 << (CPU_TLB_ENTRY_BITS))
 
 /* TCG_TARGET_TLB_DISPLACEMENT_BITS is used in CPU_TLB_BITS to ensure that
  * the TLB is not unnecessarily small, but still small enough for the
@@ -67,6 +78,10 @@
  * 0x18 (the offset of the addend field in each TLB entry) plus the offset
  * of tlb_table inside env (which is non-trivial but not huge).
  */
+
+#undef CPU_TLB_BITS
+#undef CPU_TLB_SIZE
+
 #define CPU_TLB_BITS                                             \
     MIN(8,                                                       \
         TCG_TARGET_TLB_DISPLACEMENT_BITS - CPU_TLB_ENTRY_BITS -  \
@@ -76,6 +91,25 @@
          NB_MMU_MODES <= 8 ? 3 : 4))
 
 #define CPU_TLB_SIZE (1 << CPU_TLB_BITS)
+
+/* CPUIOTLBEntry is not arch variable. So don't multi include it */
+
+#ifndef HAVE_CPU_IO_TLB_ENTRY_DEF
+#define HAVE_CPU_IO_TLB_ENTRY_DEF
+
+/* The IOTLB is not accessed directly inline by generated TCG code,
+ * so the CPUIOTLBEntry layout is not as critical as that of the
+ * CPUTLBEntry. (This is also why we don't want to combine the two
+ * structs into one.)
+ */
+typedef struct CPUIOTLBEntry {
+    hwaddr addr;
+    MemTxAttrs attrs;
+} CPUIOTLBEntry;
+
+#endif
+
+#ifndef TARGET_MULTI
 
 typedef struct CPUTLBEntry {
     /* bit TARGET_LONG_BITS to TARGET_PAGE_BITS : virtual address
@@ -98,22 +132,20 @@ typedef struct CPUTLBEntry {
     };
 } CPUTLBEntry;
 
-QEMU_BUILD_BUG_ON(sizeof(CPUTLBEntry) != (1 << CPU_TLB_ENTRY_BITS));
+QEMU_BUILD_BUG_ON(sizeof(CPUTLBEntry) != (CPU_TLB_ENTRY_SIZE));
 
-/* The IOTLB is not accessed directly inline by generated TCG code,
- * so the CPUIOTLBEntry layout is not as critical as that of the
- * CPUTLBEntry. (This is also why we don't want to combine the two
- * structs into one.)
- */
-typedef struct CPUIOTLBEntry {
-    hwaddr addr;
-    MemTxAttrs attrs;
-} CPUIOTLBEntry;
+#define CPU_COMMON_TLB_ENTRY                                                \
+    CPUTLBEntry tlb_table[NB_MMU_MODES][CPU_TLB_SIZE];                      \
+    CPUTLBEntry tlb_v_table[NB_MMU_MODES][CPU_VTLB_SIZE];
+#else
+#define CPU_COMMON_TLB_ENTRY                                                \
+    uint8_t tlb_table[NB_MMU_MODES][CPU_TLB_SIZE][CPU_TLB_ENTRY_SIZE];      \
+    uint8_t tlb_v_table[NB_MMU_MODES][CPU_VTLB_SIZE][CPU_TLB_ENTRY_SIZE];
+#endif
 
 #define CPU_COMMON_TLB \
     /* The meaning of the MMU modes is defined in the target code. */   \
-    CPUTLBEntry tlb_table[NB_MMU_MODES][CPU_TLB_SIZE];                  \
-    CPUTLBEntry tlb_v_table[NB_MMU_MODES][CPU_VTLB_SIZE];               \
+    CPU_COMMON_TLB_ENTRY                                                \
     CPUIOTLBEntry iotlb[NB_MMU_MODES][CPU_TLB_SIZE];                    \
     CPUIOTLBEntry iotlb_v[NB_MMU_MODES][CPU_VTLB_SIZE];                 \
     target_ulong tlb_flush_addr;                                        \
@@ -131,4 +163,3 @@ typedef struct CPUIOTLBEntry {
     /* soft mmu support */                                              \
     CPU_COMMON_TLB                                                      \
 
-#endif
