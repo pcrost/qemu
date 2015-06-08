@@ -1030,7 +1030,6 @@ static inline bool access_secure_reg(CPUARMState *env)
                        (arm_is_secure(_env) && !arm_el_is_aa64((_env), 3)), \
                        (_val))
 
-void arm_cpu_list(FILE *f, fprintf_function cpu_fprintf);
 uint32_t arm_phys_excp_target_el(CPUState *cs, uint32_t excp_idx,
                                  uint32_t cur_el, bool secure);
 
@@ -1635,7 +1634,6 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
 #define cpu_init(cpu_model) CPU(cpu_arm_init(cpu_model))
 
 #define cpu_signal_handler cpu_arm_signal_handler
-#define cpu_list arm_cpu_list
 
 /* ARM has the following "translation regimes" (as the ARM ARM calls them):
  *

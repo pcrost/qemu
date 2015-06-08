@@ -4,6 +4,7 @@
 #include "exec/helper-proto.h"
 #include "qemu/host-utils.h"
 #include "sysemu/arch_init.h"
+#include "sysemu/cpus.h"
 #include "sysemu/sysemu.h"
 #include "qemu/bitops.h"
 #include "qemu/crc32c.h"
@@ -4576,7 +4577,7 @@ static void arm_cpu_list_entry(gpointer data, gpointer user_data)
     g_free(name);
 }
 
-void arm_cpu_list(FILE *f, fprintf_function cpu_fprintf)
+static void arm_cpu_list(FILE *f, fprintf_function cpu_fprintf)
 {
     CPUListState s = {
         .file = f,
@@ -4596,6 +4597,8 @@ void arm_cpu_list(FILE *f, fprintf_function cpu_fprintf)
     (*cpu_fprintf)(f, "  host (only available in KVM mode)\n");
 #endif
 }
+
+cpu_list_register(arm_cpu_list)
 
 static void arm_cpu_add_definition(gpointer data, gpointer user_data)
 {
