@@ -145,7 +145,7 @@ static inline void exclusive_idle(void)
 }
 
 /* Start an exclusive operation.
-   Must only be called from outside cpu_arm_exec.   */
+   Must only be called from outside cpu_exec.   */
 static inline void start_exclusive(void)
 {
     CPUState *other_cpu;
@@ -278,7 +278,7 @@ void cpu_loop(CPUX86State *env)
 
     for(;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_x86_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch(trapnr) {
         case 0x80:
@@ -672,7 +672,7 @@ void cpu_loop(CPUARMState *env)
 
     for(;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_arm_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch(trapnr) {
         case EXCP_UDEF:
@@ -1003,7 +1003,7 @@ void cpu_loop(CPUARMState *env)
 
     for (;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_arm_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
 
         switch (trapnr) {
@@ -1085,7 +1085,7 @@ void cpu_loop(CPUUniCore32State *env)
 
     for (;;) {
         cpu_exec_start(cs);
-        trapnr = uc32_cpu_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch (trapnr) {
         case UC32_EXCP_PRIV:
@@ -1286,7 +1286,7 @@ void cpu_loop (CPUSPARCState *env)
 
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_sparc_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
 
         /* Compute PSR before exposing state.  */
@@ -1566,7 +1566,7 @@ void cpu_loop(CPUPPCState *env)
 
     for(;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_ppc_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch(trapnr) {
         case POWERPC_EXCP_NONE:
@@ -2418,7 +2418,7 @@ void cpu_loop(CPUMIPSState *env)
 
     for(;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_mips_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch(trapnr) {
         case EXCP_SYSCALL:
@@ -2655,7 +2655,7 @@ void cpu_loop(CPUOpenRISCState *env)
 
     for (;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_openrisc_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         gdbsig = 0;
 
@@ -2745,7 +2745,7 @@ void cpu_loop(CPUSH4State *env)
 
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_sh4_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
 
         switch (trapnr) {
@@ -2807,7 +2807,7 @@ void cpu_loop(CPUCRISState *env)
     
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_cris_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch (trapnr) {
         case 0xaa:
@@ -2868,7 +2868,7 @@ void cpu_loop(CPUMBState *env)
     
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_mb_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch (trapnr) {
         case 0xaa:
@@ -2973,7 +2973,7 @@ void cpu_loop(CPUM68KState *env)
 
     for(;;) {
         cpu_exec_start(cs);
-        trapnr = cpu_m68k_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch(trapnr) {
         case EXCP_ILLEGAL:
@@ -3112,7 +3112,7 @@ void cpu_loop(CPUAlphaState *env)
 
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_alpha_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
 
         /* All of the traps imply a transition through PALcode, which
@@ -3300,7 +3300,7 @@ void cpu_loop(CPUS390XState *env)
 
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_s390x_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch (trapnr) {
         case EXCP_INTERRUPT:
@@ -3604,7 +3604,7 @@ void cpu_loop(CPUTLGState *env)
 
     while (1) {
         cpu_exec_start(cs);
-        trapnr = cpu_tilegx_exec(cs);
+        trapnr = cpu_exec(cs);
         cpu_exec_end(cs);
         switch (trapnr) {
         case TILEGX_EXCP_SYSCALL:

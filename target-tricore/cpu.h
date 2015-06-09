@@ -344,7 +344,6 @@ void psw_write(CPUTriCoreState *env, uint32_t val);
 
 void tricore_cpu_list(FILE *f, fprintf_function cpu_fprintf);
 
-#define cpu_exec cpu_tricore_exec
 #define cpu_signal_handler cpu_tricore_signal_handler
 #define cpu_list tricore_cpu_list
 
@@ -370,7 +369,6 @@ enum {
 };
 
 void cpu_state_reset(CPUTriCoreState *s);
-int cpu_tricore_exec(CPUState *cpu);
 void tricore_tcg_init(void);
 int cpu_tricore_signal_handler(int host_signum, void *pinfo, void *puc);
 
