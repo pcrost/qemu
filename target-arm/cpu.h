@@ -36,9 +36,12 @@
 #define CPUArchState struct CPUARMState
 
 #include "qemu-common.h"
+
 #include "exec/cpu-defs.h"
 
 #include "fpu/softfloat.h"
+
+#ifndef TARGET_MULTI
 
 #define EXCP_UDEF            1   /* undefined instruction */
 #define EXCP_SWI             2   /* software interrupt */
@@ -57,6 +60,10 @@
 #define EXCP_VFIQ           15
 #define EXCP_SEMIHOST       16   /* semihosting call (A64 only) */
 
+#endif /* TARGET_MULTI */
+
+/* These defs are public as needed by ARMv7M NVIC */
+
 #define ARMV7M_EXCP_RESET   1
 #define ARMV7M_EXCP_NMI     2
 #define ARMV7M_EXCP_HARD    3
@@ -73,6 +80,8 @@
 #define CPU_INTERRUPT_VIRQ  CPU_INTERRUPT_TGT_EXT_2
 #define CPU_INTERRUPT_VFIQ  CPU_INTERRUPT_TGT_EXT_3
 
+#ifndef TARGET_MULTI
+
 /* The usual mapping for an AArch64 system register to its AArch32
  * counterpart is for the 32 bit world to have access to the lower
  * half only (with writes leaving the upper half untouched). It's
@@ -86,6 +95,8 @@
 #define offsetoflow32(S, M) offsetof(S, M)
 #define offsetofhigh32(S, M) (offsetof(S, M) + sizeof(uint32_t))
 #endif
+
+#endif /* !TARGET_MULTI */
 
 /* Meanings of the ARMCPU object's four inbound GPIO lines */
 #define ARM_CPU_IRQ 0
@@ -515,6 +526,8 @@ static inline ARMCPU *cpu_arm_init(const char *cpu_model)
     return ARM_CPU(cpu_generic_init(TYPE_ARM_CPU, cpu_model));
 }
 
+#ifndef TARGET_MULTI
+
 target_ulong do_arm_semihosting(CPUARMState *env);
 void aarch64_sync_32_to_64(CPUARMState *env);
 void aarch64_sync_64_to_32(CPUARMState *env);
@@ -649,6 +662,12 @@ void pmccntr_sync(CPUARMState *env);
 #define TTBCR_SH1    (1U << 28)
 #define TTBCR_EAE    (1U << 31)
 
+#endif /* !TARGET_MULTI */
+
+/* Some bits of system level code do direct deposit to the PSTATE. Allow
+ * these symbols as global even in multi-arch.
+ */
+
 /* Bit definitions for ARMv8 SPSR (PSTATE) format.
  * Only these are valid when in AArch64 mode; in
  * AArch32 mode SPSRs are basically CPSR-format.
@@ -677,6 +696,8 @@ void pmccntr_sync(CPUARMState *env);
 #define PSTATE_MODE_EL1h 5
 #define PSTATE_MODE_EL1t 4
 #define PSTATE_MODE_EL0t 0
+
+#ifndef TARGET_MULTI
 
 /* Map EL and handler into a PSTATE_MODE.  */
 static inline unsigned int aarch64_pstate_mode(unsigned int el, bool handler)
@@ -786,7 +807,13 @@ static inline void xpsr_write(CPUARMState *env, uint32_t val, uint32_t mask)
 #define HCR_ID        (1ULL << 33)
 #define HCR_MASK      ((1ULL << 34) - 1)
 
+#endif /* !TARGET_MULTI */
+
+/* bootloader needs this to init security state of processor */
 #define SCR_NS                (1U << 0)
+
+#ifndef TARGET_MULTI
+
 #define SCR_IRQ               (1U << 1)
 #define SCR_FIQ               (1U << 2)
 #define SCR_EA                (1U << 3)
@@ -835,6 +862,8 @@ static inline void vfp_set_fpcr(CPUARMState *env, uint32_t val)
     vfp_set_fpscr(env, new_fpscr);
 }
 
+#endif /* !TARGET_MULTI */
+
 enum arm_cpu_mode {
   ARM_CPU_MODE_USR = 0x10,
   ARM_CPU_MODE_FIQ = 0x11,
@@ -846,6 +875,8 @@ enum arm_cpu_mode {
   ARM_CPU_MODE_UND = 0x1b,
   ARM_CPU_MODE_SYS = 0x1f
 };
+
+#ifndef TARGET_MULTI
 
 /* VFP system registers.  */
 #define ARM_VFP_FPSID   0
@@ -866,6 +897,8 @@ enum arm_cpu_mode {
 #define ARM_IWMMXT_wCGR1	9
 #define ARM_IWMMXT_wCGR2	10
 #define ARM_IWMMXT_wCGR3	11
+
+#endif /* TARGET_MULTI */
 
 /* If adding a feature bit which corresponds to a Linux ELF
  * HWCAP bit, remember to update the feature-bit-to-hwcap
@@ -922,6 +955,8 @@ static inline int arm_feature(CPUARMState *env, int feature)
 {
     return (env->features & (1ULL << feature)) != 0;
 }
+
+#ifndef TARGET_MULTI
 
 #if !defined(CONFIG_USER_ONLY)
 /* Return true if exception levels below EL3 are in secure state,
@@ -1032,6 +1067,8 @@ static inline bool access_secure_reg(CPUARMState *env)
 
 uint32_t arm_phys_excp_target_el(CPUState *cs, uint32_t excp_idx,
                                  uint32_t cur_el, bool secure);
+
+#endif /* TARGET_MULTI */
 
 /* Interface between CPU and Interrupt controller.  */
 void armv7m_nvic_set_pending(void *opaque, int irq);
@@ -1242,6 +1279,8 @@ static inline bool cptype_valid(int cptype)
 #define PL1_RW (PL1_R | PL1_W)
 #define PL0_RW (PL0_R | PL0_W)
 
+#ifndef TARGET_MULTI
+
 /* Return the current Exception Level (as per ARMv8; note that this differs
  * from the ARMv7 Privilege Level).
  */
@@ -1273,6 +1312,8 @@ static inline int arm_current_el(CPUARMState *env)
         return 1;
     }
 }
+
+#endif
 
 typedef struct ARMCPRegInfo ARMCPRegInfo;
 
@@ -1464,6 +1505,8 @@ static inline bool cp_access_ok(int current_el,
 
 /* Raw read of a coprocessor register (as needed for migration, etc) */
 uint64_t read_raw_cp_reg(CPUARMState *env, const ARMCPRegInfo *ri);
+
+#ifndef TARGET_MULTI
 
 /**
  * write_list_to_cpustate
@@ -1985,6 +2028,8 @@ static inline void cpu_get_tb_cpu_state(CPUARMState *env, target_ulong *pc,
 }
 
 #include "exec/exec-all.h"
+
+#endif /* !TARGET_MULTI */
 
 enum {
     QEMU_PSCI_CONDUIT_DISABLED = 0,

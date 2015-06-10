@@ -29,6 +29,7 @@
 #include "sysemu/sysemu.h"
 #include "sysemu/kvm.h"
 #include "kvm_arm.h"
+#include "tcg/tcg.h"
 
 static void arm_cpu_set_pc(CPUState *cs, vaddr value)
 {
@@ -444,6 +445,7 @@ static void arm_cpu_initfn(Object *obj)
     static bool inited;
     uint32_t Aff1, Aff0;
 
+    CPU_SET_QOM_HOOKS(cs);
     cs->env_ptr = &cpu->env;
     cpu_exec_init(cs, &error_abort);
     cpu->cp_regs = g_hash_table_new_full(g_int_hash, g_int_equal,

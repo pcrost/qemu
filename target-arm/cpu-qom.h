@@ -198,9 +198,11 @@ static inline ARMCPU *arm_env_get_cpu(CPUARMState *env)
     return container_of(env, ARMCPU, env);
 }
 
+#ifndef TARGET_MULTI
 #define ENV_GET_CPU(e) CPU(arm_env_get_cpu(e))
 
 #define ENV_OFFSET offsetof(ARMCPU, env)
+#endif /* !TARGET_MULTI */
 
 #ifndef CONFIG_USER_ONLY
 extern const struct VMStateDescription vmstate_arm_cpu;
