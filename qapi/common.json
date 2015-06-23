@@ -22,11 +22,14 @@
 # @KVMMissingCap: the requested operation can't be fulfilled because a
 #                 required KVM capability is missing
 #
+# @MultipleErrors: Multiple errors have occured
+#
 # Since: 1.2
 ##
 { 'enum': 'ErrorClass',
   'data': [ 'GenericError', 'CommandNotFound', 'DeviceEncrypted',
-            'DeviceNotActive', 'DeviceNotFound', 'KVMMissingCap' ] }
+            'DeviceNotActive', 'DeviceNotFound', 'KVMMissingCap',
+            'MultipleErrors' ] }
 
 ##
 # @VersionTriple

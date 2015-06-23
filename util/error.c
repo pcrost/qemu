@@ -18,28 +18,25 @@ struct Error
 {
     char *msg;
     ErrorClass err_class;
+    struct Error *next;
 };
 
 Error *error_abort;
 
 static void do_error_set(Error **errp, ErrorClass err_class,
                          void (*mod)(Error *, void *), void *mod_opaque,
-                         const char *fmt, ...)
+                         const char *fmt, va_list ap)
 {
     Error *err;
-    va_list ap;
     int saved_errno = errno;
 
     if (errp == NULL) {
         return;
     }
-    assert(*errp == NULL);
 
     err = g_malloc0(sizeof(*err));
 
-    va_start(ap, fmt);
     err->msg = g_strdup_vprintf(fmt, ap);
-    va_end(ap);
     if (mod) {
         mod(err, mod_opaque);
     }
@@ -50,6 +47,7 @@ static void do_error_set(Error **errp, ErrorClass err_class,
         abort();
     }
 
+    err->next = *errp;
     *errp = err;
 
     errno = saved_errno;
@@ -120,15 +118,22 @@ Error *error_copy(const Error *err)
 {
     Error *err_new;
 
+    if (!err) {
+        return NULL;
+    }
     err_new = g_malloc0(sizeof(*err));
     err_new->msg = g_strdup(err->msg);
     err_new->err_class = err->err_class;
+    err_new->next = error_copy(err->next);
 
     return err_new;
 }
 
 ErrorClass error_get_class(const Error *err)
 {
+    if (err->next) {
+        return ERROR_CLASS_MULTIPLE_ERRORS;
+    }
     return err->err_class;
 }
 
@@ -145,6 +150,9 @@ void error_report_err(Error *err)
 
 void error_free(Error *err)
 {
+    if (err->next) {
+        error_free(err->next);
+    }
     if (err) {
         g_free(err->msg);
         g_free(err);
@@ -156,8 +164,15 @@ void error_propagate(Error **dst_errp, Error *local_err)
     if (local_err && dst_errp == &error_abort) {
         error_report_err(local_err);
         abort();
-    } else if (dst_errp && !*dst_errp) {
+    } else if (dst_errp) {
+        Error *i;
+        Error *old_dst_err = *dst_errp;
+
         *dst_errp = local_err;
+        for (i = local_err; i; i = i->next) {
+            dst_errp = &i->next;
+        }
+        *dst_errp = old_dst_err;
     } else if (local_err) {
         error_free(local_err);
     }
