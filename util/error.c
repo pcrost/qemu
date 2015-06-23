@@ -19,6 +19,7 @@ struct Error
     char *msg;
     ErrorClass err_class;
     struct Error *next;
+    bool prefixed;
 };
 
 Error *error_abort;
@@ -142,6 +143,26 @@ const char *error_get_pretty(Error *err)
     return err->msg;
 }
 
+void error_prefix(Error *err, const char *fmt, ...) {
+    char *msg;
+    char *fmt_full;
+    va_list ap;
+
+    if (!err || err->prefixed) {
+        return;
+    }
+    err->prefixed = true;
+
+    msg = err->msg;
+    fmt_full =  g_strdup_printf("%s%%s", fmt);
+
+    va_start(ap, fmt);
+    err->msg = g_strdup_printf(fmt_full, ap, msg);
+    va_end(ap);
+    g_free(fmt_full);
+    g_free(msg);
+}
+
 void error_report_err(Error *err)
 {
     error_report("%s", error_get_pretty(err));
@@ -170,6 +191,11 @@ void error_propagate(Error **dst_errp, Error *local_err)
 
         *dst_errp = local_err;
         for (i = local_err; i; i = i->next) {
+            /* Propagation implies that the caller is no longer the owner of the
+             * error. Therefore reset prefixes, so higher level handlers can
+             * prefix again.
+             */
+            i->prefixed = false;
             dst_errp = &i->next;
         }
         *dst_errp = old_dst_err;

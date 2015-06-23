@@ -78,6 +78,12 @@ ErrorClass error_get_class(const Error *err);
 Error *error_copy(const Error *err);
 
 /**
+ * Prefix an error message with a formatted string.
+ */
+
+void error_prefix(Error *err, const char *fmt, ...);
+
+/**
  * Get a human readable representation of an error object.
  */
 const char *error_get_pretty(Error *err);
