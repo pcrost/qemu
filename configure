@@ -260,6 +260,7 @@ xfs=""
 vhost_net="no"
 vhost_scsi="no"
 kvm="no"
+cross_kvm="no"
 rdma=""
 gprof="no"
 debug_tcg="no"
@@ -937,6 +938,10 @@ for opt do
   ;;
   --enable-kvm) kvm="yes"
   ;;
+  --disable-cross-kvm) cross_kvm="no"
+  ;;
+  --enable-cross-kvm) cross_kvm="yes"
+  ;;
   --disable-tcg-interpreter) tcg_interpreter="no"
   ;;
   --enable-tcg-interpreter) tcg_interpreter="yes"
@@ -1360,6 +1365,7 @@ disabled with --disable-FEATURE, default is enabled if available:
   fdt             fdt device tree
   bluez           bluez stack connectivity
   kvm             KVM acceleration support
+  cross-kvm       Cross-architecture KVM support
   rdma            RDMA-based migration support
   uuid            uuid support
   vde             support for vde network
@@ -4653,6 +4659,12 @@ EOF
   fi
 fi
 
+if test "$cross_kvm" = "yes"; then
+  if test "$kvm" = "no"; then
+    error_exit "cross KVM requested but KVM disabled"
+  fi
+fi
+
 # prepend pixman and ftd flags after all config tests are done
 QEMU_CFLAGS="$pixman_cflags $fdt_cflags $QEMU_CFLAGS"
 libs_softmmu="$pixman_libs $libs_softmmu"
@@ -4742,6 +4754,7 @@ echo "Linux AIO support $linux_aio"
 echo "ATTR/XATTR support $attr"
 echo "Install blobs     $blobs"
 echo "KVM support       $kvm"
+echo "Cross KVM support $cross_kvm"
 echo "RDMA support      $rdma"
 echo "TCG interpreter   $tcg_interpreter"
 echo "fdt support       $fdt"
@@ -5650,7 +5663,8 @@ case "$target_name" in
   aarch64|arm|i386|x86_64|ppcemb|ppc|ppc64|s390x|mipsel|mips)
     # Make sure the target and host cpus are compatible
     if test "$kvm" = "yes" -a "$target_softmmu" = "yes" -a \
-      \( "$target_name" = "$cpu" -o \
+      \( "$cross_kvm" = "yes" -o \
+         "$target_name" = "$cpu" -o \
       \( "$target_name" = "ppcemb" -a "$cpu" = "ppc" \) -o \
       \( "$target_name" = "ppc64"  -a "$cpu" = "ppc" \) -o \
       \( "$target_name" = "ppc"    -a "$cpu" = "ppc64" \) -o \
@@ -5663,6 +5677,9 @@ case "$target_name" in
       echo "CONFIG_KVM=y" >> $config_target_mak
       if test "$vhost_net" = "yes" ; then
         echo "CONFIG_VHOST_NET=y" >> $config_target_mak
+      fi
+      if test "$cross_kvm" = "yes" ; then
+        echo "CONFIG_CROSS_KVM=y" >> $config_target_mak
       fi
     fi
 esac
