@@ -83,6 +83,10 @@ for arch in $ARCHLIST; do
     if [ $arch = powerpc ]; then
         cp "$tmpdir/include/asm/epapr_hcalls.h" "$output/linux-headers/asm-powerpc/"
     fi
+    if [ $arch = arm64 ]; then
+        cp "$tmpdir/include/asm/ptrace.h" "$output/linux-headers/asm-arm64/"
+        cp "$tmpdir/include/asm/hwcap.h" "$output/linux-headers/asm-arm64/"
+    fi
 
     rm -rf "$output/include/standard-headers/asm-$arch"
     mkdir -p "$output/include/standard-headers/asm-$arch"
