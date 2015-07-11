@@ -80,3 +80,40 @@ void cpu_loop_exit_restore(CPUState *cpu, uintptr_t pc)
     cpu->current_tb = NULL;
     siglongjmp(cpu->jmp_env, 1);
 }
+
+typedef struct CPUListFn {
+    void (*do_cpu_list)(FILE *f, fprintf_function cpu_fprintf);
+    QLIST_ENTRY(CPUListFn) list;
+} CPUListFn;
+
+static bool cpu_list_list_inited;
+static QLIST_HEAD(, CPUListFn) cpu_list_list;
+
+void cpu_list_add(void (*fn)(FILE *, fprintf_function))
+{
+    CPUListFn *lelem = g_malloc0(sizeof(*lelem));
+
+    if (!cpu_list_list_inited) {
+        cpu_list_list_inited = true;
+        QLIST_INIT(&cpu_list_list);
+    }
+
+    lelem->do_cpu_list = fn;
+    QLIST_INSERT_HEAD(&cpu_list_list, lelem, list);
+}
+
+void list_cpus(FILE *f, fprintf_function cpu_fprintf, const char *optarg)
+{
+    CPUListFn *c;
+
+    /* XXX: implement xxx_cpu_list for targets that still miss it */
+#if defined(cpu_list)
+    cpu_list(f, cpu_fprintf);
+#endif
+    if (!cpu_list_list_inited) {
+        return;
+    }
+    QLIST_FOREACH(c, &cpu_list_list, list) {
+        c->do_cpu_list(f, cpu_fprintf);
+    }
+}

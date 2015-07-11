@@ -24,6 +24,13 @@ extern int smp_threads;
 #define smp_threads 1
 #endif
 
+void cpu_list_add(void (*fn)(FILE *, fprintf_function cpu_fprintf));
 void list_cpus(FILE *f, fprintf_function cpu_fprintf, const char *optarg);
+
+#define cpu_list_register(fn)                                               \
+static __attribute__((constructor)) void register_cpu_list ## fn(void)      \
+{                                                                           \
+    cpu_list_add(fn);                                                       \
+}
 
 #endif

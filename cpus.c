@@ -1514,14 +1514,6 @@ static void tcg_exec_all(void)
     atomic_mb_set(&exit_request, 0);
 }
 
-void list_cpus(FILE *f, fprintf_function cpu_fprintf, const char *optarg)
-{
-    /* XXX: implement xxx_cpu_list for targets that still miss it */
-#if defined(cpu_list)
-    cpu_list(f, cpu_fprintf);
-#endif
-}
-
 CpuInfoList *qmp_query_cpus(Error **errp)
 {
     CpuInfoList *head = NULL, *cur_item = NULL;
