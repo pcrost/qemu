@@ -328,6 +328,11 @@ typedef struct PCIHostDeviceAddress {
 
 void tcg_exec_init_add(void (*fn)(unsigned long));
 void tcg_exec_init(unsigned long tb_size);
+
+void tcg_enabled_add(bool (*fn)(void));
+bool tcg_any_enabled(void);
+bool tcg_all_enabled(void);
+
 bool tcg_enabled(void);
 
 void cpu_exec_init_all(void);

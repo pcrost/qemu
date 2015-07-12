@@ -766,6 +766,11 @@ bool tcg_enabled(void)
     return tcg_ctx.code_gen_buffer != NULL;
 }
 
+static __attribute__((constructor)) void register_tcg_enabled(void)
+{
+    tcg_enabled_add(tcg_enabled);
+}
+
 /* Allocate a new translation block. Flush the translation buffer if
    too many translation blocks or too much generated code. */
 static TranslationBlock *tb_alloc(target_ulong pc)

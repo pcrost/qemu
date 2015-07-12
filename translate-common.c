@@ -84,3 +84,46 @@ void tcg_exec_init(unsigned long tb_size)
         t->do_tcg_exec_init(tb_size);
     }
 }
+
+typedef struct TCGEnabledFn {
+    bool (*do_tcg_enabled)(void);
+    QLIST_ENTRY(TCGEnabledFn) list;
+} TCGEnabledFn;
+
+static QLIST_HEAD(, TCGEnabledFn) tcg_enabled_fn_list;
+
+void tcg_enabled_add(bool (*fn)(void))
+{
+    static bool inited;
+    TCGEnabledFn *lelem = g_malloc0(sizeof *lelem);
+
+    if (!inited) {
+        inited = true;
+        QLIST_INIT(&tcg_enabled_fn_list);
+    }
+
+    lelem->do_tcg_enabled = fn;
+    QLIST_INSERT_HEAD(&tcg_enabled_fn_list, lelem, list);
+}
+
+static inline bool tcg_any_all_enabled(bool all)
+{
+    TCGEnabledFn *t;
+
+    QLIST_FOREACH(t, &tcg_enabled_fn_list, list) {
+        if (t->do_tcg_enabled() != all) {
+            return !all;
+        }
+    }
+    return all;
+}
+
+bool tcg_any_enabled(void)
+{
+    return tcg_any_all_enabled(false);
+}
+
+bool tcg_all_enabled(void)
+{
+    return tcg_any_all_enabled(true);
+}
