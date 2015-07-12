@@ -972,7 +972,7 @@ bool cpu_physical_memory_test_and_clear_dirty(ram_addr_t start,
     dirty = bitmap_test_and_clear_atomic(ram_list.dirty_memory[client],
                                          page, end - page);
 
-    if (dirty && tcg_enabled()) {
+    if (dirty && tcg_any_enabled()) {
         tlb_reset_dirty_range_all(start, length);
     }
 
@@ -2700,7 +2700,7 @@ void cpu_flush_icache_range(hwaddr start, int len)
      * so there is no need to flush anything. For KVM / Xen we need to flush
      * the host's instruction cache at least.
      */
-    if (tcg_enabled()) {
+    if (!tcg_all_enabled()) {
         return;
     }
 

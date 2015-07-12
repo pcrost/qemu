@@ -202,14 +202,15 @@ static inline void cpu_physical_memory_set_dirty_lebitmap(unsigned long *bitmap,
 
                 atomic_or(&d[DIRTY_MEMORY_MIGRATION][page + k], temp);
                 atomic_or(&d[DIRTY_MEMORY_VGA][page + k], temp);
-                if (tcg_enabled()) {
+                if (tcg_any_enabled()) {
                     atomic_or(&d[DIRTY_MEMORY_CODE][page + k], temp);
                 }
             }
         }
         xen_modified_memory(start, pages << TARGET_PAGE_BITS);
     } else {
-        uint8_t clients = tcg_enabled() ? DIRTY_CLIENTS_ALL : DIRTY_CLIENTS_NOCODE;
+        uint8_t clients = tcg_any_enabled() ? DIRTY_CLIENTS_ALL
+                                            : DIRTY_CLIENTS_NOCODE;
         /*
          * bitmap-traveling is faster than memory-traveling (for addr...)
          * especially when most of the memory is not dirty.

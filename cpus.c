@@ -1221,7 +1221,7 @@ void qemu_mutex_lock_iothread(void)
     /* In the simple case there is no need to bump the VCPU thread out of
      * TCG code execution.
      */
-    if (!tcg_enabled() || qemu_in_vcpu_thread() ||
+    if (!tcg_any_enabled() || qemu_in_vcpu_thread() ||
         !first_cpu || !first_cpu->created) {
         qemu_mutex_lock(&qemu_global_mutex);
         atomic_dec(&iothread_requesting_mutex);
