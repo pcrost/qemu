@@ -19,6 +19,7 @@
 #if !defined(__TRICORE_CPU_H__)
 #define __TRICORE_CPU_H__
 
+#include "exec/cpu-defs-clear.h"
 #include "tricore-defs.h"
 #include "config.h"
 #include "qemu-common.h"

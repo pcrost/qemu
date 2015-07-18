@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "qemu-common.h"
+#include "exec/cpu-defs-clear.h"
 
 #define TARGET_LONG_BITS 64
 

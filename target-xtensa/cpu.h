@@ -28,6 +28,8 @@
 #ifndef CPU_XTENSA_H
 #define CPU_XTENSA_H
 
+#include "exec/cpu-defs-clear.h"
+
 #define ALIGNED_ONLY
 #define TARGET_LONG_BITS 32
 

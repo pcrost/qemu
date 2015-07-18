@@ -20,6 +20,7 @@
 #define CPU_ARM_H
 
 #include "config.h"
+#include "exec/cpu-defs-clear.h"
 
 #include "kvm-consts.h"
 

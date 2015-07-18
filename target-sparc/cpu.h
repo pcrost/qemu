@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "qemu-common.h"
+#include "exec/cpu-defs-clear.h"
 #include "qemu/bswap.h"
 
 #define ALIGNED_ONLY

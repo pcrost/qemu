@@ -22,6 +22,7 @@
 #include "config.h"
 #include "qemu-common.h"
 #include "standard-headers/asm-x86/hyperv.h"
+#include "exec/cpu-defs-clear.h"
 
 #ifdef TARGET_X86_64
 #define TARGET_LONG_BITS 64

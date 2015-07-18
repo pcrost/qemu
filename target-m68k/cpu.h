@@ -20,6 +20,8 @@
 #ifndef CPU_M68K_H
 #define CPU_M68K_H
 
+#include "exec/cpu-defs-clear.h"
+
 #define TARGET_LONG_BITS 32
 
 #define CPUArchState struct CPUM68KState

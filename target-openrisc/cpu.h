@@ -20,6 +20,8 @@
 #ifndef CPU_OPENRISC_H
 #define CPU_OPENRISC_H
 
+#include "exec/cpu-defs-clear.h"
+
 #define TARGET_LONG_BITS 32
 
 #define CPUArchState struct CPUOpenRISCState

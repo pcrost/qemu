@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "qemu-common.h"
+#include "exec/cpu-defs-clear.h"
 
 //#define PPC_EMULATE_32BITS_HYPV
 

@@ -5,6 +5,8 @@
 
 #define ALIGNED_ONLY
 
+#include "exec/cpu-defs-clear.h"
+
 #define CPUArchState struct CPUMIPSState
 
 #include "config.h"
