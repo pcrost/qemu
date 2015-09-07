@@ -40,8 +40,7 @@ static void hmp_handle_error(Monitor *mon, Error **errp)
 {
     assert(errp);
     if (*errp) {
-        monitor_printf(mon, "%s\n", error_get_pretty(*errp));
-        error_free(*errp);
+        error_printf_fn(*errp, monitor_printf, mon);
     }
 }
 
@@ -534,8 +533,7 @@ void hmp_info_vnc(Monitor *mon, const QDict *qdict)
 
     info = qmp_query_vnc(&err);
     if (err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(err));
-        error_free(err);
+        error_printf_fn(err, monitor_printf, mon);
         return;
     }
 
@@ -657,8 +655,7 @@ void hmp_info_balloon(Monitor *mon, const QDict *qdict)
 
     info = qmp_query_balloon(&err);
     if (err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(err));
-        error_free(err);
+        error_printf_fn(err, monitor_printf, mon);
         return;
     }
 
@@ -926,8 +923,7 @@ void hmp_ringbuf_read(Monitor *mon, const QDict *qdict)
 
     data = qmp_ringbuf_read(chardev, size, false, 0, &err);
     if (err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(err));
-        error_free(err);
+        error_printf_fn(err, monitor_printf, mon);
         return;
     }
 
@@ -1020,8 +1016,8 @@ void hmp_balloon(Monitor *mon, const QDict *qdict)
 
     qmp_balloon(value, &err);
     if (err) {
-        monitor_printf(mon, "balloon: %s\n", error_get_pretty(err));
-        error_free(err);
+        error_prefix(err, "balloon: ");
+        error_printf_fn(err, monitor_printf, mon);
     }
 }
 
@@ -1169,8 +1165,7 @@ void hmp_migrate_set_cache_size(Monitor *mon, const QDict *qdict)
 
     qmp_migrate_set_cache_size(value, &err);
     if (err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(err));
-        error_free(err);
+        error_printf_fn(err, monitor_printf, mon);
         return;
     }
 }
@@ -1207,9 +1202,8 @@ void hmp_migrate_set_capability(Monitor *mon, const QDict *qdict)
     qapi_free_MigrationCapabilityStatusList(caps);
 
     if (err) {
-        monitor_printf(mon, "migrate_set_capability: %s\n",
-                       error_get_pretty(err));
-        error_free(err);
+        error_prefix(err, "migrate_set_capability: ");
+        error_printf_fn(err, monitor_printf, mon);
     }
 }
 
@@ -1249,9 +1243,8 @@ void hmp_migrate_set_parameter(Monitor *mon, const QDict *qdict)
     }
 
     if (err) {
-        monitor_printf(mon, "migrate_set_parameter: %s\n",
-                       error_get_pretty(err));
-        error_free(err);
+        error_prefix(err, "migrate_set_parameter: ");
+        error_printf_fn(err, monitor_printf, mon);
     }
 }
 
@@ -1483,8 +1476,8 @@ void hmp_migrate(Monitor *mon, const QDict *qdict)
 
     qmp_migrate(uri, !!blk, blk, !!inc, inc, false, false, &err);
     if (err) {
-        monitor_printf(mon, "migrate: %s\n", error_get_pretty(err));
-        error_free(err);
+        error_prefix(err, "migrate: ");
+        error_printf_fn(err, monitor_printf, mon);
         return;
     }
 

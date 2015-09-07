@@ -363,11 +363,12 @@ void monitor_vprintf(Monitor *mon, const char *fmt, va_list ap)
     g_free(buf);
 }
 
-void monitor_printf(Monitor *mon, const char *fmt, ...)
+void monitor_printf(void *mon, const char *fmt, ...)
 {
+    Monitor *monitor = mon;
     va_list ap;
     va_start(ap, fmt);
-    monitor_vprintf(mon, fmt, ap);
+    monitor_vprintf(monitor, fmt, ap);
     va_end(ap);
 }
 
@@ -1417,8 +1418,7 @@ static void hmp_boot_set(Monitor *mon, const QDict *qdict)
 
     qemu_boot_set(bootdevice, &local_err);
     if (local_err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(local_err));
-        error_free(local_err);
+        error_printf_fn(local_err, monitor_printf, mon);
     } else {
         monitor_printf(mon, "boot device list now set to %s\n", bootdevice);
     }
@@ -5318,8 +5318,7 @@ static void bdrv_password_cb(void *opaque, const char *password,
 
     bdrv_add_key(bs, password, &local_err);
     if (local_err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(local_err));
-        error_free(local_err);
+        error_printf_fn(local_err, monitor_printf, mon);
         ret = -EPERM;
     }
     if (mon->password_completion_cb)
