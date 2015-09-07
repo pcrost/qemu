@@ -127,7 +127,12 @@ bool sysbus_has_mmio(SysBusDevice *dev, unsigned int n)
 static void sysbus_mmio_map_common(SysBusDevice *dev, int n, hwaddr addr,
                                    bool may_overlap, int priority)
 {
-    assert(n >= 0 && n < dev->num_mmio);
+    assert(n >= 0);
+
+    if (n < dev->num_mmio) {
+        /* FIXME: Add an Error ** to this function for this condition */
+        return;
+    }
 
     if (dev->mmio[n].addr == addr) {
         /* ??? region already mapped here.  */
@@ -186,6 +191,10 @@ void sysbus_init_mmio(SysBusDevice *dev, MemoryRegion *memory)
 
 MemoryRegion *sysbus_mmio_get_region(SysBusDevice *dev, int n)
 {
+    if (n >= dev->num_mmio) {
+        /* FIXME: Add an Error ** to this function for this condition */
+        return NULL;
+    }
     return dev->mmio[n].memory;
 }
 
