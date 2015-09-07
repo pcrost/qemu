@@ -50,18 +50,10 @@ static void aw_a10_realize(DeviceState *dev, Error **errp)
     Error *err = NULL;
 
     object_property_set_bool(OBJECT(&s->cpu), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     irq = qdev_get_gpio_in(DEVICE(&s->cpu), ARM_CPU_IRQ);
     fiq = qdev_get_gpio_in(DEVICE(&s->cpu), ARM_CPU_FIQ);
 
     object_property_set_bool(OBJECT(&s->intc), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbusdev = SYS_BUS_DEVICE(&s->intc);
     sysbus_mmio_map(sysbusdev, 0, AW_A10_PIC_REG_BASE);
     sysbus_connect_irq(sysbusdev, 0, irq);
@@ -71,10 +63,6 @@ static void aw_a10_realize(DeviceState *dev, Error **errp)
     }
 
     object_property_set_bool(OBJECT(&s->timer), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbusdev = SYS_BUS_DEVICE(&s->timer);
     sysbus_mmio_map(sysbusdev, 0, AW_A10_PIT_REG_BASE);
     sysbus_connect_irq(sysbusdev, 0, s->irq[22]);
@@ -85,10 +73,6 @@ static void aw_a10_realize(DeviceState *dev, Error **errp)
     sysbus_connect_irq(sysbusdev, 5, s->irq[68]);
 
     object_property_set_bool(OBJECT(&s->emac), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbusdev = SYS_BUS_DEVICE(&s->emac);
     sysbus_mmio_map(sysbusdev, 0, AW_A10_EMAC_BASE);
     sysbus_connect_irq(sysbusdev, 0, s->irq[55]);
@@ -96,6 +80,8 @@ static void aw_a10_realize(DeviceState *dev, Error **errp)
     /* FIXME use a qdev chardev prop instead of serial_hds[] */
     serial_mm_init(get_system_memory(), AW_A10_UART0_REG_BASE, 2, s->irq[1],
                    115200, serial_hds[0], DEVICE_NATIVE_ENDIAN);
+
+    error_propagate(errp, err);
 }
 
 static void aw_a10_class_init(ObjectClass *oc, void *data)

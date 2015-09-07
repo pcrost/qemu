@@ -37,29 +37,21 @@ static void cubieboard_init(MachineState *machine)
 
     s->a10 = AW_A10(object_new(TYPE_AW_A10));
 
-    object_property_set_int(OBJECT(&s->a10->emac), 1, "phy-addr", &err);
-    if (err != NULL) {
-        error_report("Couldn't set phy address: %s", error_get_pretty(err));
-        exit(1);
-    }
+    object_property_set_int(OBJECT(&s->a10->emac), 1, "ph-addr", &err);
+    error_prefix(err, "Couldn't set phy address: ");
 
-    object_property_set_int(OBJECT(&s->a10->timer), 32768, "clk0-freq", &err);
-    if (err != NULL) {
-        error_report("Couldn't set clk0 frequency: %s", error_get_pretty(err));
-        exit(1);
-    }
+    object_property_set_int(OBJECT(&s->a10->timer), 32768, "ck0-freq", &err);
+    error_prefix(err, "Couldn't set clk0 frequency: ");
 
-    object_property_set_int(OBJECT(&s->a10->timer), 24000000, "clk1-freq",
+    object_property_set_int(OBJECT(&s->a10->timer), 24000000, "ck1-freq",
                             &err);
-    if (err != NULL) {
-        error_report("Couldn't set clk1 frequency: %s", error_get_pretty(err));
-        exit(1);
-    }
+    error_prefix(err, "Couldn't set clk1 frequency:");
 
     object_property_set_bool(OBJECT(s->a10), true, "realized", &err);
-    if (err != NULL) {
-        error_report("Couldn't realize Allwinner A10: %s",
-                     error_get_pretty(err));
+    error_prefix(err, "Couldn't realize Allwinner A10: ");
+
+    if (err) {
+        error_report_err(err);
         exit(1);
     }
 
