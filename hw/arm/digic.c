@@ -60,36 +60,21 @@ static void digic_realize(DeviceState *dev, Error **errp)
     int i;
 
     object_property_set_bool(OBJECT(&s->cpu), true, "reset-hivecs", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
-
     object_property_set_bool(OBJECT(&s->cpu), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
 
     for (i = 0; i < DIGIC4_NB_TIMERS; i++) {
         object_property_set_bool(OBJECT(&s->timer[i]), true, "realized", &err);
-        if (err != NULL) {
-            error_propagate(errp, err);
-            return;
-        }
 
         sbd = SYS_BUS_DEVICE(&s->timer[i]);
         sysbus_mmio_map(sbd, 0, DIGIC4_TIMER_BASE(i));
     }
 
     object_property_set_bool(OBJECT(&s->uart), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
 
     sbd = SYS_BUS_DEVICE(&s->uart);
     sysbus_mmio_map(sbd, 0, DIGIC_UART_BASE);
+
+    error_propagate(errp, err);
 }
 
 static void digic_class_init(ObjectClass *oc, void *data)
