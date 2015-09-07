@@ -163,10 +163,18 @@ void error_prefix(Error *err, const char *fmt, ...) {
     g_free(msg);
 }
 
+static void error_report_err_printf(void *opaque, const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    error_vreport(fmt, ap);
+    va_end(ap);
+}
+
 void error_report_err(Error *err)
 {
-    error_report("%s", error_get_pretty(err));
-    error_free(err);
+    error_printf_fn(err, error_report_err_printf, NULL);
 }
 
 void error_free(Error *err)
@@ -178,6 +186,16 @@ void error_free(Error *err)
         g_free(err->msg);
         g_free(err);
     }
+}
+
+void error_printf_fn(Error *err, void (*printf_fn)(void *, const char *, ...),
+                     void *printf_opaque)
+{
+    if (err->next) {
+        error_printf_fn(err->next, printf_fn, printf_opaque);
+    }
+    printf_fn(printf_opaque, "%s\n", error_get_pretty(err));
+    error_free(err);
 }
 
 void error_propagate(Error **dst_errp, Error *local_err)

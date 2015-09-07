@@ -94,6 +94,13 @@ const char *error_get_pretty(Error *err);
 void error_report_err(Error *);
 
 /**
+ * Report an and free an error object using a custom printf implementation.
+ */
+
+void error_printf_fn(Error *err, void (*printf_fn)(void *, const char *, ...),
+                     void *printf_opaque);
+
+/**
  * Propagate an error to an indirect pointer to an error.  This function will
  * always transfer ownership of the error reference and handles the case where
  * dst_err is NULL correctly.  Errors after the first are discarded.
