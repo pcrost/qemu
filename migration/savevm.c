@@ -1266,12 +1266,10 @@ static int del_existing_snapshots(Monitor *mon, const char *name)
             bdrv_snapshot_find(bs, snapshot, name) >= 0) {
             bdrv_snapshot_delete_by_id_or_name(bs, name, &err);
             if (err) {
-                monitor_printf(mon,
-                               "Error while deleting snapshot on device '%s':"
-                               " %s\n",
-                               bdrv_get_device_name(bs),
-                               error_get_pretty(err));
-                error_free(err);
+                error_prefix(err,
+                             "Error while deleting snapshot on device '%s':",
+                              bdrv_get_device_name(bs));
+                error_printf_fn(err, monitor_printf, mon);
                 return -1;
             }
         }
@@ -1360,7 +1358,7 @@ void hmp_savevm(Monitor *mon, const QDict *qdict)
     vm_state_size = qemu_ftell(f);
     qemu_fclose(f);
     if (ret < 0) {
-        monitor_printf(mon, "%s\n", error_get_pretty(local_err));
+        error_printf_fn(local_err, monitor_printf, mon);
         error_free(local_err);
         goto the_end;
     }
@@ -1512,12 +1510,10 @@ void hmp_delvm(Monitor *mon, const QDict *qdict)
             err = NULL;
             bdrv_snapshot_delete_by_id_or_name(bs, name, &err);
             if (err) {
-                monitor_printf(mon,
-                               "Error while deleting snapshot on device '%s':"
-                               " %s\n",
-                               bdrv_get_device_name(bs),
-                               error_get_pretty(err));
-                error_free(err);
+                error_prefix(err,
+                             "Error while deleting snapshot on device '%s':",
+                             bdrv_get_device_name(bs));
+                error_printf_fn(err, monitor_printf, mon);
             }
         }
     }
