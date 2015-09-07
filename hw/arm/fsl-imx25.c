@@ -72,16 +72,8 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
     Error *err = NULL;
 
     object_property_set_bool(OBJECT(&s->cpu), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
 
     object_property_set_bool(OBJECT(&s->avic), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->avic), 0, FSL_IMX25_AVIC_ADDR);
     sysbus_connect_irq(SYS_BUS_DEVICE(&s->avic), 0,
                        qdev_get_gpio_in(DEVICE(&s->cpu), ARM_CPU_IRQ));
@@ -89,10 +81,6 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
                        qdev_get_gpio_in(DEVICE(&s->cpu), ARM_CPU_FIQ));
 
     object_property_set_bool(OBJECT(&s->ccm), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->ccm), 0, FSL_IMX25_CCM_ADDR);
 
     /* Initialize all UARTs */
@@ -123,10 +111,6 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
         }
 
         object_property_set_bool(OBJECT(&s->uart[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->uart[i]), 0, serial_table[i].addr);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->uart[i]), 0,
                            qdev_get_gpio_in(DEVICE(&s->avic),
@@ -148,10 +132,6 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
         s->gpt[i].ccm = DEVICE(&s->ccm);
 
         object_property_set_bool(OBJECT(&s->gpt[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->gpt[i]), 0, gpt_table[i].addr);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->gpt[i]), 0,
                            qdev_get_gpio_in(DEVICE(&s->avic),
@@ -171,10 +151,6 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
         s->epit[i].ccm = DEVICE(&s->ccm);
 
         object_property_set_bool(OBJECT(&s->epit[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->epit[i]), 0, epit_table[i].addr);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->epit[i]), 0,
                            qdev_get_gpio_in(DEVICE(&s->avic),
@@ -183,10 +159,6 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
 
     qdev_set_nic_properties(DEVICE(&s->fec), &nd_table[0]);
     object_property_set_bool(OBJECT(&s->fec), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->fec), 0, FSL_IMX25_FEC_ADDR);
     sysbus_connect_irq(SYS_BUS_DEVICE(&s->fec), 0,
                        qdev_get_gpio_in(DEVICE(&s->avic), FSL_IMX25_FEC_IRQ));
@@ -204,10 +176,6 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
         };
 
         object_property_set_bool(OBJECT(&s->i2c[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->i2c[i]), 0, i2c_table[i].addr);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->i2c[i]), 0,
                            qdev_get_gpio_in(DEVICE(&s->avic),
@@ -217,28 +185,16 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
     /* initialize 2 x 16 KB ROM */
     memory_region_init_rom_device(&s->rom[0], NULL, NULL, NULL,
                                   "imx25.rom0", FSL_IMX25_ROM0_SIZE, &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     memory_region_add_subregion(get_system_memory(), FSL_IMX25_ROM0_ADDR,
                                 &s->rom[0]);
     memory_region_init_rom_device(&s->rom[1], NULL, NULL, NULL,
                                   "imx25.rom1", FSL_IMX25_ROM1_SIZE, &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     memory_region_add_subregion(get_system_memory(), FSL_IMX25_ROM1_ADDR,
                                 &s->rom[1]);
 
     /* initialize internal RAM (128 KB) */
     memory_region_init_ram(&s->iram, NULL, "imx25.iram", FSL_IMX25_IRAM_SIZE,
                            &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     memory_region_add_subregion(get_system_memory(), FSL_IMX25_IRAM_ADDR,
                                 &s->iram);
     vmstate_register_ram_global(&s->iram);
@@ -248,6 +204,8 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
                              &s->iram, 0, FSL_IMX25_IRAM_ALIAS_SIZE);
     memory_region_add_subregion(get_system_memory(), FSL_IMX25_IRAM_ALIAS_ADDR,
                                 &s->iram_alias);
+
+    error_propagate(errp, err);
 }
 
 static void fsl_imx25_class_init(ObjectClass *oc, void *data)

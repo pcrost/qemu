@@ -64,16 +64,8 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
     Error *err = NULL;
 
     object_property_set_bool(OBJECT(&s->cpu), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
 
     object_property_set_bool(OBJECT(&s->avic), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->avic), 0, FSL_IMX31_AVIC_ADDR);
     sysbus_connect_irq(SYS_BUS_DEVICE(&s->avic), 0,
                        qdev_get_gpio_in(DEVICE(&s->cpu), ARM_CPU_IRQ));
@@ -81,10 +73,6 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
                        qdev_get_gpio_in(DEVICE(&s->cpu), ARM_CPU_FIQ));
 
     object_property_set_bool(OBJECT(&s->ccm), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->ccm), 0, FSL_IMX31_CCM_ADDR);
 
     /* Initialize all UARTS */
@@ -112,10 +100,6 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
         }
 
         object_property_set_bool(OBJECT(&s->uart[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
 
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->uart[i]), 0, serial_table[i].addr);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->uart[i]), 0,
@@ -126,10 +110,6 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
     s->gpt.ccm = DEVICE(&s->ccm);
 
     object_property_set_bool(OBJECT(&s->gpt), true, "realized", &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
 
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->gpt), 0, FSL_IMX31_GPT_ADDR);
     sysbus_connect_irq(SYS_BUS_DEVICE(&s->gpt), 0,
@@ -148,10 +128,6 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
         s->epit[i].ccm = DEVICE(&s->ccm);
 
         object_property_set_bool(OBJECT(&s->epit[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
 
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->epit[i]), 0, epit_table[i].addr);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->epit[i]), 0,
@@ -172,10 +148,6 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
 
         /* Initialize the I2C */
         object_property_set_bool(OBJECT(&s->i2c[i]), true, "realized", &err);
-        if (err) {
-            error_propagate(errp, err);
-            return;
-        }
         /* Map I2C memory */
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->i2c[i]), 0, i2c_table[i].addr);
         /* Connect I2C IRQ to PIC */
@@ -188,30 +160,18 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
     memory_region_init_rom_device(&s->secure_rom, NULL, NULL, NULL,
                                   "imx31.secure_rom",
                                   FSL_IMX31_SECURE_ROM_SIZE, &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     memory_region_add_subregion(get_system_memory(), FSL_IMX31_SECURE_ROM_ADDR,
                                 &s->secure_rom);
 
     /* There is also a 16k ROM */
     memory_region_init_rom_device(&s->rom, NULL, NULL, NULL, "imx31.rom",
                                   FSL_IMX31_ROM_SIZE, &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     memory_region_add_subregion(get_system_memory(), FSL_IMX31_ROM_ADDR,
                                 &s->rom);
 
     /* initialize internal RAM (16 KB) */
     memory_region_init_ram(&s->iram, NULL, "imx31.iram", FSL_IMX31_IRAM_SIZE,
                            &err);
-    if (err) {
-        error_propagate(errp, err);
-        return;
-    }
     memory_region_add_subregion(get_system_memory(), FSL_IMX31_IRAM_ADDR,
                                 &s->iram);
     vmstate_register_ram_global(&s->iram);
@@ -221,6 +181,8 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
                              &s->iram, 0, FSL_IMX31_IRAM_ALIAS_SIZE);
     memory_region_add_subregion(get_system_memory(), FSL_IMX31_IRAM_ALIAS_ADDR,
                                 &s->iram_alias);
+
+    error_propagate(errp, err);
 }
 
 static void fsl_imx31_class_init(ObjectClass *oc, void *data)
