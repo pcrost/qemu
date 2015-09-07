@@ -1266,6 +1266,9 @@ void memory_region_init_alias(MemoryRegion *mr,
                               hwaddr offset,
                               uint64_t size)
 {
+    if (!orig) {
+        return;
+    }
     memory_region_init(mr, owner, name, size);
     mr->alias = orig;
     mr->alias_offset = offset;
@@ -1759,6 +1762,9 @@ void memory_region_add_subregion(MemoryRegion *mr,
                                  hwaddr offset,
                                  MemoryRegion *subregion)
 {
+    if (!subregion) {
+        return;
+    }
     subregion->may_overlap = false;
     subregion->priority = 0;
     memory_region_add_subregion_common(mr, offset, subregion);
@@ -1769,6 +1775,9 @@ void memory_region_add_subregion_overlap(MemoryRegion *mr,
                                          MemoryRegion *subregion,
                                          int priority)
 {
+    if (!subregion) {
+        return;
+    }
     subregion->may_overlap = true;
     subregion->priority = priority;
     memory_region_add_subregion_common(mr, offset, subregion);
