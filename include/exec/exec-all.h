@@ -403,4 +403,8 @@ extern int singlestep;
 extern CPUState *tcg_current_cpu;
 extern bool exit_request;
 
+#ifdef NEED_CPU_H
+#include "translate-all.h"
+#endif
+
 #endif

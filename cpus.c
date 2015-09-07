@@ -1185,7 +1185,7 @@ static void qemu_cpu_kick_no_halt(void)
 void qemu_cpu_kick(CPUState *cpu)
 {
     qemu_cond_broadcast(cpu->halt_cond);
-    if (tcg_enabled()) {
+    if (CPU_HOOK(cpu, tcg_enabled)()) {
         qemu_cpu_kick_no_halt();
     } else {
         qemu_cpu_kick_thread(cpu);
@@ -1374,7 +1374,7 @@ void qemu_init_vcpu(CPUState *cpu)
     cpu->stopped = true;
     if (kvm_enabled()) {
         qemu_kvm_start_vcpu(cpu);
-    } else if (tcg_enabled()) {
+    } else if (CPU_HOOK(cpu, tcg_enabled)()) {
         qemu_tcg_init_vcpu(cpu);
     } else {
         qemu_dummy_start_vcpu(cpu);
@@ -1467,7 +1467,7 @@ static int tcg_cpu_exec(CPUState *cpu)
         cpu->icount_decr.u16.low = decr;
         cpu->icount_extra = count;
     }
-    ret = cpu_exec(cpu);
+    ret = CPU_HOOK(cpu, cpu_exec)(cpu);
 #ifdef CONFIG_PROFILER
     tcg_time += profile_getclock() - ti;
 #endif

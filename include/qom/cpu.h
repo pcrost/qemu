@@ -211,6 +211,8 @@ struct kvm_run;
 #define TB_JMP_CACHE_BITS 12
 #define TB_JMP_CACHE_SIZE (1 << TB_JMP_CACHE_BITS)
 
+#define MAX_CPU_HOOKS 16
+
 /**
  * CPUState:
  * @cpu_index: CPU index (informative).
@@ -335,7 +337,84 @@ struct CPUState {
        (absolute value) offset as small as possible.  This reduces code
        size, especially for hosts without large memory offsets.  */
     uint32_t tcg_exit_req;
+
+    void (*cpu_get_tb_cpu_state)(void *env, void *pc, void *cs_base,
+                                 int *pflags);
+
+    union {
+        struct {
+#ifdef NEED_CPU_H
+            void (*tb_check_watchpoint)(CPUState *cpu);
+            void (*tb_flush)(CPUState *cpu);
+            struct TranslationBlock *(*tb_gen_code)(CPUState *cpu,
+                                                    target_ulong pc,
+                                                    target_ulong cs_base,
+                                                    int flags, int cflags);
+#ifndef CONFIG_USER_ONLY
+            void (*tlb_flush)(CPUState *cpu, int flush_global);
+            void (*tlb_flush_page)(CPUState *cpu, target_ulong addr);
+            void (*tlb_set_dirty)(CPUState *cpu, target_ulong addr);
+            void (*tlb_reset_dirty)(CPUState *cpu, ram_addr_t start,
+                  ram_addr_t length);
+
+            void (*tb_invalidate_phys_addr)(AddressSpace *as, hwaddr addr);
+            void (*tb_invalidate_phys_page_fast)(tb_page_addr_t start, int len);
+            void (*tb_invalidate_phys_range)(tb_page_addr_t start, tb_page_addr_t end);
+
+            void (*dump_exec_info)(FILE *f, fprintf_function cpu_fprintf);
+            void (*dump_opcount_info)(FILE *f, fprintf_function cpu_fprintf);
+#endif
+            int (*cpu_exec)(CPUState *cpu);
+
+            bool (*tcg_enabled)(void);
+#endif
+            void (*hooks_end_of_list)(void);
+        };
+        void (*hooks_dummy[MAX_CPU_HOOKS + 1])(void);
+    };
 };
+
+QEMU_BUILD_BUG_ON(offsetof(CPUState, hooks_end_of_list) >
+                  offsetof(CPUState, hooks_dummy[MAX_CPU_HOOKS + 1]))
+
+#ifndef CONFIG_USER_ONLY
+#define IFN_USER_ONLY(a) a
+#else
+#define IFN_USER_ONLY(a)
+#endif
+
+#define CPU_SET_QOM_HOOKS(cpu) do {                                         \
+    cpu->cpu_get_tb_cpu_state           =                                   \
+         (void (*)(void *, void *, void *, int *))cpu_get_tb_cpu_state;     \
+                                                                            \
+    cpu->tb_check_watchpoint            = tb_check_watchpoint;              \
+    cpu->tb_flush                       = tb_flush;                         \
+    cpu->tb_gen_code                    = tb_gen_code;                      \
+                                                                            \
+    IFN_USER_ONLY(                                                          \
+    cpu->tlb_flush                      = tlb_flush;                        \
+    cpu->tlb_flush_page                 = tlb_flush_page;                   \
+    cpu->tlb_set_dirty                  = tlb_set_dirty;                    \
+    cpu->tlb_reset_dirty                = tlb_reset_dirty;                  \
+                                                                            \
+    cpu->tb_invalidate_phys_addr        = tb_invalidate_phys_addr;          \
+    cpu->tb_invalidate_phys_page_fast   = tb_invalidate_phys_page_fast;     \
+    cpu->tb_invalidate_phys_range       = tb_invalidate_phys_range;         \
+                                                                            \
+    cpu->dump_exec_info                 = dump_exec_info;                   \
+    cpu->dump_opcount_info              = dump_opcount_info;                \
+    )                                                                       \
+                                                                            \
+    cpu->cpu_exec                       = cpu_exec;                         \
+                                                                            \
+    cpu->tcg_enabled                    = tcg_enabled;                      \
+} while (0);
+
+#ifdef TARGET_MULTI
+#define CPU_HOOK(cpu, fn)(cpu->fn)
+#else
+#define CPU_HOOK(cpu, fn)(fn)
+#endif
 
 QTAILQ_HEAD(CPUTailQ, CPUState);
 extern struct CPUTailQ cpus;

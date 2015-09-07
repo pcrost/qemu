@@ -467,7 +467,7 @@ static int cpu_common_post_load(void *opaque, int version_id)
     /* 0x01 was CPU_INTERRUPT_EXIT. This line can be removed when the
        version_id is increased. */
     cpu->interrupt_request &= ~0x01;
-    tlb_flush(cpu, 1);
+    CPU_HOOK(cpu, tlb_flush)(cpu, 1);
 
     return 0;
 }
@@ -485,7 +485,7 @@ static bool cpu_common_exception_index_needed(void *opaque)
 {
     CPUState *cpu = opaque;
 
-    return tcg_enabled() && cpu->exception_index != -1;
+    return CPU_HOOK(cpu, tcg_enabled)() && cpu->exception_index != -1;
 }
 
 static const VMStateDescription vmstate_cpu_common_exception_index = {
@@ -664,8 +664,8 @@ static void breakpoint_invalidate(CPUState *cpu, target_ulong pc)
 {
     hwaddr phys = cpu_get_phys_page_debug(cpu, pc);
     if (phys != -1) {
-        tb_invalidate_phys_addr(cpu->as,
-                                phys | (pc & ~TARGET_PAGE_MASK));
+        CPU_HOOK(cpu, tb_invalidate_phys_addr)(cpu->as,
+                                               phys | (pc & ~TARGET_PAGE_MASK));
     }
 }
 #endif
@@ -717,7 +717,7 @@ int cpu_watchpoint_insert(CPUState *cpu, vaddr addr, vaddr len,
         QTAILQ_INSERT_TAIL(&cpu->watchpoints, wp, entry);
     }
 
-    tlb_flush_page(cpu, addr);
+    CPU_HOOK(cpu, tlb_flush_page)(cpu, addr);
 
     if (watchpoint)
         *watchpoint = wp;
@@ -745,7 +745,7 @@ void cpu_watchpoint_remove_by_ref(CPUState *cpu, CPUWatchpoint *watchpoint)
 {
     QTAILQ_REMOVE(&cpu->watchpoints, watchpoint, entry);
 
-    tlb_flush_page(cpu, watchpoint->vaddr);
+    CPU_HOOK(cpu, tlb_flush_page)(cpu, watchpoint->vaddr);
 
     g_free(watchpoint);
 }
@@ -857,7 +857,7 @@ void cpu_single_step(CPUState *cpu, int enabled)
         } else {
             /* must flush all the translated code to avoid inconsistencies */
             /* XXX: only flush what is necessary */
-            tb_flush(cpu);
+            CPU_HOOK(cpu,tb_flush)(cpu);
         }
     }
 }
@@ -950,7 +950,7 @@ static void tlb_reset_dirty_range_all(ram_addr_t start, ram_addr_t length)
     assert(block == qemu_get_ram_block(end - 1));
     start1 = (uintptr_t)ramblock_ptr(block, start - block->offset);
     CPU_FOREACH(cpu) {
-        tlb_reset_dirty(cpu, start1, length);
+        CPU_HOOK(cpu, tlb_reset_dirty)(cpu, start1, length);
     }
     rcu_read_unlock();
 }
@@ -1986,7 +1986,7 @@ static void notdirty_mem_write(void *opaque, hwaddr ram_addr,
                                uint64_t val, unsigned size)
 {
     if (!cpu_physical_memory_get_dirty_flag(ram_addr, DIRTY_MEMORY_CODE)) {
-        tb_invalidate_phys_page_fast(ram_addr, size);
+        CPU_HOOK(current_cpu, tb_invalidate_phys_page_fast)(ram_addr, size);
     }
     switch (size) {
     case 1:
@@ -2009,7 +2009,8 @@ static void notdirty_mem_write(void *opaque, hwaddr ram_addr,
     /* we remove the notdirty callback only if the code has been
        flushed */
     if (!cpu_physical_memory_is_clean(ram_addr)) {
-        tlb_set_dirty(current_cpu, current_cpu->mem_io_vaddr);
+        CPU_HOOK(current_cpu, tlb_set_dirty)(current_cpu,
+                                             current_cpu->mem_io_vaddr);
     }
 }
 
@@ -2055,13 +2056,13 @@ static void check_watchpoint(int offset, int len, MemTxAttrs attrs, int flags)
             wp->hitattrs = attrs;
             if (!cpu->watchpoint_hit) {
                 cpu->watchpoint_hit = wp;
-                tb_check_watchpoint(cpu);
+                CPU_HOOK(cpu, tb_check_watchpoint)(cpu);
                 if (wp->flags & BP_STOP_BEFORE_ACCESS) {
                     cpu->exception_index = EXCP_DEBUG;
                     cpu_loop_exit(cpu);
                 } else {
-                    cpu_get_tb_cpu_state(env, &pc, &cs_base, &cpu_flags);
-                    tb_gen_code(cpu, pc, cs_base, cpu_flags, 1);
+                    CPU_HOOK(cpu, cpu_get_tb_cpu_state)(env, &pc, &cs_base, &cpu_flags);
+                    CPU_HOOK(cpu, tb_gen_code)(cpu, pc, cs_base, cpu_flags, 1);
                     cpu_resume_from_signal(cpu, NULL);
                 }
             }
@@ -2344,7 +2345,7 @@ static void tcg_commit(MemoryListener *listener)
      */
     d = atomic_rcu_read(&cpuas->as->dispatch);
     cpuas->memory_dispatch = d;
-    tlb_flush(cpuas->cpu, 1);
+    CPU_HOOK(cpuas->cpu, tlb_flush)(cpuas->cpu, 1);
 }
 
 void address_space_init_dispatch(AddressSpace *as)
@@ -2456,7 +2457,7 @@ static void invalidate_and_set_dirty(MemoryRegion *mr, hwaddr addr,
             cpu_physical_memory_range_includes_clean(addr, length, dirty_log_mask);
     }
     if (dirty_log_mask & (1 << DIRTY_MEMORY_CODE)) {
-        tb_invalidate_phys_range(addr, addr + length);
+        CPU_HOOK(current_cpu, tb_invalidate_phys_range)(addr, addr + length);
         dirty_log_mask &= ~(1 << DIRTY_MEMORY_CODE);
     }
     cpu_physical_memory_set_dirty_range(addr, length, dirty_log_mask);
