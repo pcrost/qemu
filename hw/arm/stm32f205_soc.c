@@ -94,10 +94,6 @@ static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
     /* System configuration controller */
     syscfgdev = DEVICE(&s->syscfg);
     object_property_set_bool(OBJECT(&s->syscfg), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     syscfgbusdev = SYS_BUS_DEVICE(syscfgdev);
     sysbus_mmio_map(syscfgbusdev, 0, 0x40013800);
     sysbus_connect_irq(syscfgbusdev, 0, pic[71]);
@@ -106,10 +102,6 @@ static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
     for (i = 0; i < STM_NUM_USARTS; i++) {
         usartdev = DEVICE(&(s->usart[i]));
         object_property_set_bool(OBJECT(&s->usart[i]), true, "realized", &err);
-        if (err != NULL) {
-            error_propagate(errp, err);
-            return;
-        }
         usartbusdev = SYS_BUS_DEVICE(usartdev);
         sysbus_mmio_map(usartbusdev, 0, usart_addr[i]);
         sysbus_connect_irq(usartbusdev, 0, pic[usart_irq[i]]);
@@ -120,14 +112,12 @@ static void stm32f205_soc_realize(DeviceState *dev_soc, Error **errp)
         timerdev = DEVICE(&(s->timer[i]));
         qdev_prop_set_uint64(timerdev, "clock-frequency", 1000000000);
         object_property_set_bool(OBJECT(&s->timer[i]), true, "realized", &err);
-        if (err != NULL) {
-            error_propagate(errp, err);
-            return;
-        }
         timerbusdev = SYS_BUS_DEVICE(timerdev);
         sysbus_mmio_map(timerbusdev, 0, timer_addr[i]);
         sysbus_connect_irq(timerbusdev, 0, pic[timer_irq[i]]);
     }
+
+    error_propagate(errp, err);
 }
 
 static Property stm32f205_soc_properties[] = {
