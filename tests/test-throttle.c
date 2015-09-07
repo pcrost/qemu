@@ -587,12 +587,11 @@ int main(int argc, char **argv)
     ctx = qemu_get_aio_context();
 
     if (!ctx) {
-        error_report("Failed to create AIO Context: '%s'",
-                     local_error ? error_get_pretty(local_error) :
-                     "Failed to initialize the QEMU main loop");
-        if (local_error) {
-            error_free(local_error);
+        if (!local_error) {
+           error_setg(&local_error, "Failed to initialize the QEMU main loop");
         }
+        error_prefix(local_error, "Failed to create AIO Context: ");
+        error_report_err(local_error);
         exit(1);
     }
 

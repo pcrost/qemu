@@ -229,9 +229,8 @@ int main(int argc, char **argv)
 
     ctx = aio_context_new(&local_error);
     if (!ctx) {
-        error_report("Failed to create AIO Context: '%s'",
-                     error_get_pretty(local_error));
-        error_free(local_error);
+        error_prefix(local_error, "Failed to create AIO Context:");
+        error_report_err(local_error);
         exit(1);
     }
     pool = aio_get_thread_pool(ctx);
