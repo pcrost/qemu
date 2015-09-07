@@ -74,18 +74,10 @@ static void mpcore_priv_realize(DeviceState *dev, Error **errp)
 
     qdev_prop_set_uint32(scudev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->scu), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
 
     qdev_prop_set_uint32(gicdev, "num-cpu", s->num_cpu);
     qdev_prop_set_uint32(gicdev, "num-irq", s->num_irq);
     object_property_set_bool(OBJECT(&s->gic), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
 
     /* Pass through outbound IRQ lines from the GIC */
     sysbus_pass_irq(sbd, SYS_BUS_DEVICE(&s->gic));
@@ -95,19 +87,13 @@ static void mpcore_priv_realize(DeviceState *dev, Error **errp)
 
     qdev_prop_set_uint32(mptimerdev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->mptimer), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
 
     qdev_prop_set_uint32(wdtimerdev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->wdtimer), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
 
     mpcore_priv_map_setup(s);
+
+    error_propagate(errp, err);
 }
 
 static void mpcore_priv_initfn(Object *obj)

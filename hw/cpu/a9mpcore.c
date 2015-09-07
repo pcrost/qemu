@@ -53,20 +53,12 @@ static void a9mp_priv_realize(DeviceState *dev, Error **errp)
     scudev = DEVICE(&s->scu);
     qdev_prop_set_uint32(scudev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->scu), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     scubusdev = SYS_BUS_DEVICE(&s->scu);
 
     gicdev = DEVICE(&s->gic);
     qdev_prop_set_uint32(gicdev, "num-cpu", s->num_cpu);
     qdev_prop_set_uint32(gicdev, "num-irq", s->num_irq);
     object_property_set_bool(OBJECT(&s->gic), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     gicbusdev = SYS_BUS_DEVICE(&s->gic);
 
     /* Pass through outbound IRQ lines from the GIC */
@@ -78,28 +70,16 @@ static void a9mp_priv_realize(DeviceState *dev, Error **errp)
     gtimerdev = DEVICE(&s->gtimer);
     qdev_prop_set_uint32(gtimerdev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->gtimer), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     gtimerbusdev = SYS_BUS_DEVICE(&s->gtimer);
 
     mptimerdev = DEVICE(&s->mptimer);
     qdev_prop_set_uint32(mptimerdev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->mptimer), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     mptimerbusdev = SYS_BUS_DEVICE(&s->mptimer);
 
     wdtdev = DEVICE(&s->wdt);
     qdev_prop_set_uint32(wdtdev, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->wdt), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     wdtbusdev = SYS_BUS_DEVICE(&s->wdt);
 
     /* Memory map (addresses are offsets from PERIPHBASE):
@@ -141,6 +121,8 @@ static void a9mp_priv_realize(DeviceState *dev, Error **errp)
         sysbus_connect_irq(wdtbusdev, i,
                            qdev_get_gpio_in(gicdev, ppibase + 30));
     }
+
+    error_propagate(errp, err);
 }
 
 static Property a9mp_priv_properties[] = {

@@ -57,10 +57,6 @@ static void a15mp_priv_realize(DeviceState *dev, Error **errp)
     qdev_prop_set_uint32(gicdev, "num-cpu", s->num_cpu);
     qdev_prop_set_uint32(gicdev, "num-irq", s->num_irq);
     object_property_set_bool(OBJECT(&s->gic), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     busdev = SYS_BUS_DEVICE(&s->gic);
 
     /* Pass through outbound IRQ lines from the GIC */
@@ -104,6 +100,8 @@ static void a15mp_priv_realize(DeviceState *dev, Error **errp)
                                 sysbus_mmio_get_region(busdev, 0));
     memory_region_add_subregion(&s->container, 0x2000,
                                 sysbus_mmio_get_region(busdev, 1));
+
+    error_propagate(errp, err);
 }
 
 static Property a15mp_priv_properties[] = {

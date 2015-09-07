@@ -66,10 +66,6 @@ static void realview_mpcore_realize(DeviceState *dev, Error **errp)
 
     qdev_prop_set_uint32(priv, "num-cpu", s->num_cpu);
     object_property_set_bool(OBJECT(&s->priv), true, "realized", &err);
-    if (err != NULL) {
-        error_propagate(errp, err);
-        return;
-    }
     sysbus_pass_irq(sbd, SYS_BUS_DEVICE(&s->priv));
     for (i = 0; i < 32; i++) {
         s->cpuic[i] = qdev_get_gpio_in(priv, i);
@@ -77,10 +73,6 @@ static void realview_mpcore_realize(DeviceState *dev, Error **errp)
     /* ??? IRQ routing is hardcoded to "normal" mode.  */
     for (n = 0; n < 4; n++) {
         object_property_set_bool(OBJECT(&s->gic[n]), true, "realized", &err);
-        if (err != NULL) {
-            error_propagate(errp, err);
-            return;
-        }
         gic = DEVICE(&s->gic[n]);
         gicbusdev = SYS_BUS_DEVICE(&s->gic[n]);
         sysbus_mmio_map(gicbusdev, 0, 0x10040000 + n * 0x10000);
@@ -90,6 +82,7 @@ static void realview_mpcore_realize(DeviceState *dev, Error **errp)
         }
     }
     qdev_init_gpio_in(dev, mpcore_rirq_set_irq, 64);
+    error_propagate(errp, err);
 }
 
 static void mpcore_rirq_init(Object *obj)
