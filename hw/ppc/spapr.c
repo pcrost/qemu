@@ -121,8 +121,8 @@ static XICSState *xics_system_init(MachineState *machine,
             icp = try_create_xics(TYPE_KVM_XICS, nr_servers, nr_irqs, &err);
         }
         if (machine_kernel_irqchip_required(machine) && !icp) {
-            error_report("kernel_irqchip requested but unavailable: %s",
-                         error_get_pretty(err));
+            error_prefix(err, "kernel_irqchip requested but unavailable: ");
+            error_report_err(err);
         }
     }
 
