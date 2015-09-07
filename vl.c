@@ -4543,7 +4543,7 @@ int main(int argc, char **argv, char **envp)
         Error *local_err = NULL;
         qemu_boot_set(boot_once, &local_err);
         if (local_err) {
-            error_report("%s", error_get_pretty(local_err));
+            error_report_err(local_err);
             exit(1);
         }
         qemu_register_reset(restore_boot_order, g_strdup(boot_order));
@@ -4633,9 +4633,8 @@ int main(int argc, char **argv, char **envp)
         Error *local_err = NULL;
         qemu_start_incoming_migration(incoming, &local_err);
         if (local_err) {
-            error_report("-incoming %s: %s", incoming,
-                         error_get_pretty(local_err));
-            error_free(local_err);
+            error_prefix(local_err, "-incoming %s: ", incoming);
+            error_report_err(local_err);
             exit(1);
         }
     } else if (autostart) {
