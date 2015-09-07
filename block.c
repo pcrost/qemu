@@ -1233,9 +1233,8 @@ int bdrv_open_backing_file(BlockDriverState *bs, QDict *options, Error **errp)
         bdrv_unref(backing_hd);
         backing_hd = NULL;
         bs->open_flags |= BDRV_O_NO_BACKING;
-        error_setg(errp, "Could not open backing file: %s",
-                   error_get_pretty(local_err));
-        error_free(local_err);
+        error_prefix(local_err, "Could not open backing file: ");
+        error_propagate(errp, local_err);
         goto free_exit;
     }
 

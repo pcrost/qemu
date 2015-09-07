@@ -1605,9 +1605,8 @@ static void bdrv_qed_invalidate_cache(BlockDriverState *bs, Error **errp)
     memset(s, 0, sizeof(BDRVQEDState));
     ret = bdrv_qed_open(bs, NULL, bs->open_flags, &local_err);
     if (local_err) {
-        error_setg(errp, "Could not reopen qed layer: %s",
-                   error_get_pretty(local_err));
-        error_free(local_err);
+        error_prefix(local_err, "Could not reopen qed layer: ");
+        error_propagate(errp, local_err);
         return;
     } else if (ret < 0) {
         error_setg_errno(errp, -ret, "Could not reopen qed layer");

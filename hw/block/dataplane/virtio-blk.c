@@ -166,9 +166,8 @@ void virtio_blk_data_plane_create(VirtIODevice *vdev, VirtIOBlkConf *conf,
      */
     if (blk_op_is_blocked(conf->conf.blk, BLOCK_OP_TYPE_DATAPLANE,
                           &local_err)) {
-        error_setg(errp, "cannot start dataplane thread: %s",
-                   error_get_pretty(local_err));
-        error_free(local_err);
+        error_prefix(local_err, "cannot start dataplane thread: ");
+        error_propagate(errp, local_err);
         return;
     }
 

@@ -1391,13 +1391,13 @@ static void internal_snapshot_abort(BlkTransactionState *common)
     }
 
     if (bdrv_snapshot_delete(bs, sn->id_str, sn->name, &local_error) < 0) {
-        error_report("Failed to delete snapshot with id '%s' and name '%s' on "
-                     "device '%s' in abort: %s",
+        error_prefix(local_error,
+                     "Failed to delete snapshot with id '%s' and name '%s' on "
+                     "device '%s' in abort:",
                      sn->id_str,
                      sn->name,
-                     bdrv_get_device_name(bs),
-                     error_get_pretty(local_error));
-        error_free(local_error);
+                     bdrv_get_device_name(bs));
+        error_report_err(local_error);
     }
 }
 

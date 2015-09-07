@@ -213,9 +213,8 @@ static BlockBackend *img_open(const char *id, const char *filename,
 
     blk = blk_new_open(id, filename, NULL, options, flags, &local_err);
     if (!blk) {
-        error_report("Could not open '%s': %s", filename,
-                     error_get_pretty(local_err));
-        error_free(local_err);
+        error_prefix(local_err, "Could not open '%s': ", filename);
+        error_report_err(local_err);
         goto fail;
     }
 
@@ -359,8 +358,8 @@ static int img_create(int argc, char **argv)
     bdrv_img_create(filename, fmt, base_filename, base_fmt,
                     options, img_size, BDRV_O_FLAGS, &local_err, quiet);
     if (local_err) {
-        error_report("%s: %s", filename, error_get_pretty(local_err));
-        error_free(local_err);
+        error_prefix(local_err, "%s: ", filename);
+        error_report_err(local_err);
         goto fail;
     }
 
@@ -1712,9 +1711,8 @@ static int img_convert(int argc, char **argv)
         bdrv_snapshot_load_tmp_by_id_or_name(bs[0], snapshot_name, &local_err);
     }
     if (local_err) {
-        error_report("Failed to load snapshot: %s",
-                     error_get_pretty(local_err));
-        error_free(local_err);
+        error_prefix(local_err, "Failed to load snapshot: ");
+        error_report_err(local_err);
         ret = -1;
         goto out;
     }
@@ -1810,9 +1808,9 @@ static int img_convert(int argc, char **argv)
         /* Create the new image */
         ret = bdrv_create(drv, out_filename, opts, &local_err);
         if (ret < 0) {
-            error_report("%s: error while converting %s: %s",
-                         out_filename, out_fmt, error_get_pretty(local_err));
-            error_free(local_err);
+            error_prefix(local_err, "%s: error while converting %s: ",
+                         out_filename, out_fmt);
+            error_report_err(local_err);
             goto out;
         }
     }
@@ -2437,9 +2435,9 @@ static int img_snapshot(int argc, char **argv)
     case SNAPSHOT_DELETE:
         bdrv_snapshot_delete_by_id_or_name(bs, snapshot_name, &err);
         if (err) {
-            error_report("Could not delete snapshot '%s': (%s)",
-                         snapshot_name, error_get_pretty(err));
-            error_free(err);
+            error_prefix(err, "Could not delete snapshot '%s': ",
+                         snapshot_name);
+            error_report_err(err);
             ret = 1;
         }
         break;
@@ -2572,9 +2570,9 @@ static int img_rebase(int argc, char **argv)
         blk_old_backing = blk_new_open("old_backing", backing_name, NULL,
                                        options, src_flags, &local_err);
         if (!blk_old_backing) {
-            error_report("Could not open old backing file '%s': %s",
-                         backing_name, error_get_pretty(local_err));
-            error_free(local_err);
+            error_prefix(local_err, "Could not open old backing file '%s': ",
+                         backing_name);
+            error_report_err(local_err);
             goto out;
         }
 
@@ -2589,9 +2587,9 @@ static int img_rebase(int argc, char **argv)
             blk_new_backing = blk_new_open("new_backing", out_baseimg, NULL,
                                            options, src_flags, &local_err);
             if (!blk_new_backing) {
-                error_report("Could not open new backing file '%s': %s",
-                             out_baseimg, error_get_pretty(local_err));
-                error_free(local_err);
+                error_prefix(local_err, "Could not open new backing file '%s':",
+                             out_baseimg);
+                error_report_err(local_err);
                 goto out;
             }
         }
