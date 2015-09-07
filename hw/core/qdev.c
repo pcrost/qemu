@@ -467,7 +467,11 @@ qemu_irq qdev_get_gpio_in_named(DeviceState *dev, const char *name, int n)
 {
     NamedGPIOList *gpio_list = qdev_get_named_gpio_list(dev, name);
 
-    assert(n >= 0 && n < gpio_list->num_in);
+    assert(n >= 0);
+    if (n >= gpio_list->num_in) {
+        /* FIXME: add error ** to this API */
+        return NULL;
+    }
     return gpio_list->in[n];
 }
 
@@ -491,7 +495,8 @@ void qdev_connect_gpio_out_named(DeviceState *dev, const char *name, int n,
                                                 "/unattached"),
                                   "non-qdev-gpio[*]", OBJECT(pin), NULL);
     }
-    object_property_set_link(OBJECT(dev), OBJECT(pin), propname, &error_abort);
+    /* FIXME: add error ** to this API */
+    object_property_set_link(OBJECT(dev), OBJECT(pin), propname, NULL);
     g_free(propname);
 }
 
