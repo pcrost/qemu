@@ -119,6 +119,14 @@ void arm_handle_psci_call(ARMCPU *cpu)
         goto err;
     }
 
+    for (i = 0; i < cpu->num_psci_remaps;) {
+        uint64_t find = cpu->psci_remaps[i++];
+        uint64_t replace = cpu->psci_remaps[i++];
+        if (param[0] == find) {
+            param[0] = replace;
+        }
+    }
+
     switch (param[0]) {
         CPUState *target_cpu_state;
         ARMCPU *target_cpu;

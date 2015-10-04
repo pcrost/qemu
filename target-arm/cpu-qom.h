@@ -113,6 +113,9 @@ typedef struct ARMCPU {
      */
     uint32_t psci_conduit;
 
+    int num_psci_remaps;
+    uint64_t *psci_remaps;
+
     /* [QEMU_]KVM_ARM_TARGET_* constant for this CPU, or
      * QEMU_KVM_ARM_TARGET_NONE if the kernel doesn't support this CPU type.
      */

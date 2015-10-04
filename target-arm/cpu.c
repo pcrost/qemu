@@ -30,6 +30,8 @@
 #include "sysemu/kvm.h"
 #include "kvm_arm.h"
 
+#include "qapi/visitor.h"
+
 static void arm_cpu_set_pc(CPUState *cs, vaddr value)
 {
     ARMCPU *cpu = ARM_CPU(cs);
@@ -516,6 +518,17 @@ static Property arm_cpu_has_mpu_property =
 static Property arm_cpu_pmsav7_dregion_property =
             DEFINE_PROP_UINT32("pmsav7-dregion", ARMCPU, pmsav7_dregion, 16);
 
+static void psci_remap_set(Object *obj, Visitor *v, void *opaque,
+                           const char *name, Error **errp)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+    cpu->psci_remaps = g_renew(uint64_t, cpu->psci_remaps,
+                               cpu->num_psci_remaps + 1);
+
+    visit_type_uint64(v, &cpu->psci_remaps[cpu->num_psci_remaps++],
+                      name, errp);
+}
+
 static void arm_cpu_post_init(Object *obj)
 {
     ARMCPU *cpu = ARM_CPU(obj);
@@ -554,6 +567,11 @@ static void arm_cpu_post_init(Object *obj)
         }
     }
 
+    if (arm_feature(&cpu->env, ARM_FEATURE_V7)) {
+        object_property_add(obj, "psci-remap", "uint64",
+                            NULL, psci_remap_set,
+                            NULL, NULL, &error_abort);
+    }
 }
 
 static void arm_cpu_finalizefn(Object *obj)
