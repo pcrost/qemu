@@ -248,13 +248,18 @@ static const uint8_t sd_csd_rw_mask[16] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfc, 0xfe,
 };
 
-static void sd_set_csd(SDState *sd, uint64_t size)
+static uint64_t sd_set_csd(SDState *sd, uint64_t size)
 {
-    uint32_t csize = (size >> (CMULT_SHIFT + HWBLOCK_SHIFT)) - 1;
-    uint32_t sectsize = (1 << (SECTOR_SHIFT + 1)) - 1;
-    uint32_t wpsize = (1 << (WPGROUP_SHIFT + 1)) - 1;
+    uint64_t actual_size;
 
     if (size <= 0x40000000) {	/* Standard Capacity SD */
+        uint32_t sectsize = (1 << (SECTOR_SHIFT + 1)) - 1;
+        uint32_t wpsize = (1 << (WPGROUP_SHIFT + 1)) - 1;
+        uint32_t csize;
+
+        actual_size = ROUND_UP(size, 1 << (CMULT_SHIFT + HWBLOCK_SHIFT));
+        csize = (actual_size >> (CMULT_SHIFT + HWBLOCK_SHIFT)) - 1;
+
         sd->csd[0] = 0x00;	/* CSD structure */
         sd->csd[1] = 0x26;	/* Data read access-time-1 */
         sd->csd[2] = 0x00;	/* Data read access-time-2 */
@@ -281,7 +286,8 @@ static void sd_set_csd(SDState *sd, uint64_t size)
         sd->csd[14] = 0x00;	/* File format group */
         sd->csd[15] = (sd_crc7(sd->csd, 15) << 1) | 1;
     } else {			/* SDHC */
-        size /= 512 * 1024;
+        actual_size = ROUND_UP(size, 512 * 1024);
+        size = actual_size / (512 * 1024);
         size -= 1;
         sd->csd[0] = 0x40;
         sd->csd[1] = 0x0e;
@@ -301,6 +307,7 @@ static void sd_set_csd(SDState *sd, uint64_t size)
         sd->csd[15] = 0x00;
         sd->ocr |= 1 << 30;     /* High Capacity SD Memory Card */
     }
+    return actual_size;
 }
 
 static void sd_set_rca(SDState *sd)
@@ -408,7 +415,7 @@ static void sd_reset(SDState *sd)
     sd_set_ocr(sd);
     sd_set_scr(sd);
     sd_set_cid(sd);
-    sd_set_csd(sd, size);
+    size = sd_set_csd(sd, size);
     sd_set_cardstatus(sd);
     sd_set_sdstatus(sd);
 
