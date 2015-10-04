@@ -29,6 +29,8 @@
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"
 
+#include "target-arm/kvm-consts.h"
+
 #define SMP_BOOT_ADDR           0x100
 #define SMP_BOOT_REG            0x40
 #define MPCORE_PERIPHBASE       0xfff10000
@@ -36,6 +38,12 @@
 #define MVBAR_ADDR              0x200
 
 #define NIRQ_GIC                160
+
+static const uint64_t hb_psci_remaps [] = {
+    0x84000002, QEMU_PSCI_0_1_FN_CPU_SUSPEND,
+    0x84000004, QEMU_PSCI_0_1_FN_CPU_OFF,
+    0x84000006, QEMU_PSCI_0_1_FN_CPU_ON,
+};
 
 /* Board init.  */
 
@@ -258,7 +266,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
     DeviceState *dev = NULL;
     SysBusDevice *busdev;
     qemu_irq pic[128];
-    int n;
+    int n, i;
     qemu_irq cpu_irq[4];
     qemu_irq cpu_fiq[4];
     MemoryRegion *sysram;
@@ -286,6 +294,11 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
 
         object_property_set_int(cpuobj, QEMU_PSCI_CONDUIT_SMC,
                                 "psci-conduit", &error_abort);
+
+        for (i = 0; i < ARRAY_SIZE(hb_psci_remaps); i++) {
+            object_property_set_int(cpuobj, hb_psci_remaps[i], "psci-remap",
+                                    &error_abort);
+        }
 
         if (n) {
             /* Secondary CPUs start in PSCI powered-down state */
