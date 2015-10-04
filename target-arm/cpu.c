@@ -456,7 +456,7 @@ static void arm_cpu_initfn(Object *obj)
      * in later ARM ARM versions), or any of the higher affinity level fields,
      * so these bits always RAZ.
      */
-    Aff1 = cs->cpu_index / ARM_CPUS_PER_CLUSTER;
+    Aff1 = cs->cpu_index / ARM_CPUS_PER_CLUSTER + 9;
     Aff0 = cs->cpu_index % ARM_CPUS_PER_CLUSTER;
     cpu->mp_affinity = (Aff1 << ARM_AFF1_SHIFT) | Aff0;
 
