@@ -129,7 +129,7 @@ void i2c_end_transfer(I2CBus *bus)
     bus->current_dev = NULL;
 }
 
-int i2c_send(I2CBus *bus, uint8_t data)
+int i2c_send_recv(I2CBus  *bus, uint8_t *data, bool send)
 {
     I2CSlave *dev = bus->current_dev;
     I2CSlaveClass *sc;
@@ -139,28 +139,32 @@ int i2c_send(I2CBus *bus, uint8_t data)
     }
 
     sc = I2C_SLAVE_GET_CLASS(dev);
-    if (sc->send) {
-        return sc->send(dev, data);
+    if (send && sc->send) {
+        return sc->send(dev, *data);
+    } else if (!send && sc->recv) {
+        int ret = sc->recv(dev);
+        if (ret < 0) {
+            return ret;
+        } else {
+            *data = ret;
+            return 0;
+        }
     }
 
     return -1;
 }
 
+int i2c_send(I2CBus *bus, uint8_t data)
+{
+    return i2c_send_recv(bus, &data, true);
+}
+
 int i2c_recv(I2CBus *bus)
 {
-    I2CSlave *dev = bus->current_dev;
-    I2CSlaveClass *sc;
+    uint8_t data;
+    int ret = i2c_send_recv(bus, &data, false);
 
-    if (!dev) {
-        return -1;
-    }
-
-    sc = I2C_SLAVE_GET_CLASS(dev);
-    if (sc->recv) {
-        return sc->recv(dev);
-    }
-
-    return -1;
+    return ret < 0 ? ret : data;
 }
 
 void i2c_nack(I2CBus *bus)
