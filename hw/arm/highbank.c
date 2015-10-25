@@ -447,19 +447,34 @@ static void midway_init(MachineState *machine)
     calxeda_init(machine, CALXEDA_MIDWAY);
 }
 
+#define TYPE_CALXEDA_ECX "calxeda-ecx"
+
+static void ecx_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->block_default_type = IF_SCSI;
+    mc->max_cpus = 4;
+}
+
+static const TypeInfo ecx_type = {
+    .name = TYPE_CALXEDA_ECX,
+    .parent = TYPE_MACHINE,
+    .class_init = ecx_class_init,
+    .abstract = true,
+};
+
 static void highbank_class_init(ObjectClass *oc, void *data)
 {
     MachineClass *mc = MACHINE_CLASS(oc);
 
     mc->desc = "Calxeda Highbank (ECX-1000)";
     mc->init = highbank_init;
-    mc->block_default_type = IF_SCSI;
-    mc->max_cpus = 4;
 }
 
 static const TypeInfo highbank_type = {
     .name = MACHINE_TYPE_NAME("highbank"),
-    .parent = TYPE_MACHINE,
+    .parent = TYPE_CALXEDA_ECX,
     .class_init = highbank_class_init,
 };
 
@@ -469,18 +484,17 @@ static void midway_class_init(ObjectClass *oc, void *data)
 
     mc->desc = "Calxeda Midway (ECX-2000)";
     mc->init = midway_init;
-    mc->block_default_type = IF_SCSI;
-    mc->max_cpus = 4;
 }
 
 static const TypeInfo midway_type = {
     .name = MACHINE_TYPE_NAME("midway"),
-    .parent = TYPE_MACHINE,
+    .parent = TYPE_CALXEDA_ECX,
     .class_init = midway_class_init,
 };
 
 static void calxeda_machines_init(void)
 {
+    type_register_static(&ecx_type);
     type_register_static(&highbank_type);
     type_register_static(&midway_type);
 }
