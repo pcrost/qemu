@@ -57,17 +57,10 @@ static char const *imx31_ccm_reg_name(uint32_t reg)
 
 static const VMStateDescription vmstate_imx31_ccm = {
     .name = TYPE_IMX31_CCM,
-    .version_id = 1,
-    .minimum_version_id = 1,
+    .version_id = 2,
+    .minimum_version_id = 2,
     .fields = (VMStateField[]) {
-        VMSTATE_UINT32(ccmr, IMX31CCMState),
-        VMSTATE_UINT32(pdr0, IMX31CCMState),
-        VMSTATE_UINT32(pdr1, IMX31CCMState),
-        VMSTATE_UINT32(mpctl, IMX31CCMState),
-        VMSTATE_UINT32(spctl, IMX31CCMState),
-        VMSTATE_UINT32_ARRAY(cgr, IMX31CCMState, 3),
-        VMSTATE_UINT32(pmcr0, IMX31CCMState),
-        VMSTATE_UINT32(pmcr1, IMX31CCMState),
+        VMSTATE_UINT32_ARRAY(regs, IMX31CCMState, IMX31_CCM_NUM_REGS),
         VMSTATE_END_OF_LIST()
     },
 };
@@ -152,6 +145,7 @@ static void imx31_ccm_reset(DeviceState *dev)
 
     DPRINTF("()\n");
 
+    memset(s->regs, 0, sizeof(s->regs));
     s->ccmr    = 0x074b0b7b;
     s->pdr0    = 0xff870b48;
     s->pdr1    = 0x49fcfe7f;
@@ -173,42 +167,13 @@ static uint64_t imx31_ccm_read(void *opaque, hwaddr offset, unsigned size)
 {
     uint32 value = 0;
     IMX31CCMState *s = (IMX31CCMState *)opaque;
+    int reg = offset >> 2;
 
-    switch (offset >> 2) {
-    case 0: /* CCMR */
-        value = s->ccmr;
-        break;
-    case 1:
-        value = s->pdr0;
-        break;
-    case 2:
-        value = s->pdr1;
-        break;
-    case 4:
-        value = s->mpctl;
-        break;
-    case 6:
-        value = s->spctl;
-        break;
-    case 8:
-        value = s->cgr[0];
-        break;
-    case 9:
-        value = s->cgr[1];
-        break;
-    case 10:
-        value = s->cgr[2];
-        break;
-    case 18: /* LTR1 */
-        value = 0x00004040;
-        break;
-    case 23:
-        value = s->pmcr0;
-        break;
-    default:
+    if (reg < IMX31_CCM_NUM_REGS) {
+        value = s->regs[reg];
+    } else {
         qemu_log_mask(LOG_GUEST_ERROR, "[%s]%s: Bad register at offset 0x%"
                       HWADDR_PRIx "\n", TYPE_IMX31_CCM, __func__, offset);
-        break;
     }
 
     DPRINTF("reg[%s] => 0x%" PRIx32 "\n", imx31_ccm_reg_name(offset >> 2),
@@ -224,16 +189,14 @@ static void imx31_ccm_write(void *opaque, hwaddr offset, uint64_t value,
 
     DPRINTF("reg[%s] <= 0x%" PRIx32 "\n", imx31_ccm_reg_name(offset >> 2),
             (uint32_t)value);
+    int reg = offset >> 2;
 
-    switch (offset >> 2) {
+    switch (reg) {
     case 0:
         s->ccmr = CCMR_FPMF | (value & 0x3b6fdfff);
         break;
     case 1:
         s->pdr0 = value & 0xff9f3fff;
-        break;
-    case 2:
-        s->pdr1 = value;
         break;
     case 4:
         s->mpctl = value & 0xbfff3fff;
@@ -241,19 +204,15 @@ static void imx31_ccm_write(void *opaque, hwaddr offset, uint64_t value,
     case 6:
         s->spctl = value & 0xbfff3fff;
         break;
-    case 8:
-        s->cgr[0] = value;
-        break;
-    case 9:
-        s->cgr[1] = value;
-        break;
-    case 10:
-        s->cgr[2] = value;
+    case 18: /* LTR 1 */
         break;
     default:
+        if (reg < IMX31_CCM_NUM_REGS) {
+            s->regs[reg] = value;
+            break;
+        }
         qemu_log_mask(LOG_GUEST_ERROR, "[%s]%s: Bad register at offset 0x%"
                       HWADDR_PRIx "\n", TYPE_IMX31_CCM, __func__, offset);
-        break;
     }
 }
 

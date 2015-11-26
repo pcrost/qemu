@@ -44,6 +44,8 @@
 #define TYPE_IMX31_CCM "imx31.ccm"
 #define IMX31_CCM(obj) OBJECT_CHECK(IMX31CCMState, (obj), TYPE_IMX31_CCM)
 
+#define IMX31_CCM_NUM_REGS (0x68/4)
+
 typedef struct IMX31CCMState {
     /* <private> */
     IMXCCMState parent_obj;
@@ -51,22 +53,30 @@ typedef struct IMX31CCMState {
     /* <public> */
     MemoryRegion iomem;
 
-    uint32_t ccmr;
-    uint32_t pdr0;
-    uint32_t pdr1;
-    uint32_t rcsr;
-    uint32_t mpctl;
-    uint32_t upctl;
-    uint32_t spctl;
-    uint32_t cosr;
-    uint32_t cgr[3];
-    uint32_t wimr;
-    uint32_t ldc;
-    uint32_t dcvr[4];
-    uint32_t ltr[4];
-    uint32_t ltbr[2];
-    uint32_t pmcr[2];
-    uint32_t pdr2;
+    union {
+        struct {
+            uint32_t ccmr;
+            uint32_t pdr0;
+            uint32_t pdr1;
+            uint32_t rcsr;
+            uint32_t mpctl;
+            uint32_t upctl;
+            uint32_t spctl;
+            uint32_t cosr;
+            uint32_t cgr[3];
+            uint32_t wimr;
+            uint32_t ldc;
+            uint32_t dcvr[4];
+            uint32_t ltr[4];
+            uint32_t ltbr[2];
+            uint32_t pmcr[2];
+            uint32_t pdr2;
+        };
+        uint32_t regs[IMX31_CCM_NUM_REGS];
+    };
 } IMX31CCMState;
+
+QEMU_BUILD_BUG_ON(offsetof(IMX31CCMState, pdr2) !=
+                  offsetof(IMX31CCMState, regs[0x64/4]))
 
 #endif /* IMX31_CCM_H */
