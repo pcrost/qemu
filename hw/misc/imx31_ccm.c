@@ -152,13 +152,21 @@ static void imx31_ccm_reset(DeviceState *dev)
 
     DPRINTF("()\n");
 
-    s->ccmr = 0x074b0b7b;
-    s->pdr0 = 0xff870b48;
-    s->pdr1 = 0x49fcfe7f;
-    s->mpctl = PLL_PD(1) | PLL_MFD(0) | PLL_MFI(6) | PLL_MFN(0);
-    s->cgr[0] = s->cgr[1] = s->cgr[2] = 0xffffffff;
-    s->spctl = PLL_PD(1) | PLL_MFD(4) | PLL_MFI(0xc) | PLL_MFN(1);
-    s->pmcr0 = 0x80209828;
+    s->ccmr    = 0x074b0b7b;
+    s->pdr0    = 0xff870b48;
+    s->pdr1    = 0x49fcfe7f;
+    s->rcsr    = 0x007f0000;
+    s->mpctl   = PLL_PD(1) | PLL_MFD(0) | PLL_MFI(6)   | PLL_MFN(0);
+    s->upctl   = PLL_PD(1) | PLL_MFD(5) | PLL_MFI(7)   | PLL_MFN(3);
+    s->spctl   = PLL_PD(1) | PLL_MFD(4) | PLL_MFI(0xc) | PLL_MFN(1);
+    s->cosr    = 0x00000280;
+    s->cgr[0]  = s->cgr[1] = s->cgr[2] = 0xffffffff;
+    s->wimr    = 0xffffffff;
+    s->ldc     = 0x0000000f;
+    s->ltr[1]  = 0x00004040;
+    s->pmcr[0] = 0x80209828;
+    s->pmcr[1] = 0x00aa0000;
+    s->pdr2    = 0x00000285;
 }
 
 static uint64_t imx31_ccm_read(void *opaque, hwaddr offset, unsigned size)
