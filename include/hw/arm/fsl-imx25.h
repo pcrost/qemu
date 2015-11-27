@@ -26,6 +26,7 @@
 #include "hw/net/imx_fec.h"
 #include "hw/i2c/imx_i2c.h"
 #include "hw/gpio/imx_gpio.h"
+#include "hw/sd/sdhci.h"
 #include "exec/memory.h"
 
 #define TYPE_FSL_IMX25 "fsl,imx25"
@@ -36,6 +37,7 @@
 #define FSL_IMX25_NUM_EPITS 2
 #define FSL_IMX25_NUM_I2CS 3
 #define FSL_IMX25_NUM_GPIOS 4
+#define FSL_IMX25_NUM_ESDHCS 2
 
 typedef struct FslIMX25State {
     /*< private >*/
@@ -51,6 +53,7 @@ typedef struct FslIMX25State {
     IMXFECState    fec;
     IMXI2CState    i2c[FSL_IMX25_NUM_I2CS];
     IMXGPIOState   gpio[FSL_IMX25_NUM_GPIOS];
+    SDHCIState     esdhc[2];
     MemoryRegion   rom[2];
     MemoryRegion   iram;
     MemoryRegion   iram_alias;
@@ -211,6 +214,10 @@ typedef struct FslIMX25State {
 #define FSL_IMX25_GPIO4_SIZE    0x4000
 #define FSL_IMX25_GPIO3_ADDR    0x53FA4000
 #define FSL_IMX25_GPIO3_SIZE    0x4000
+#define FSL_IMX25_ESDHC1_ADDR   0x53FB4000
+#define FSL_IMX25_ESDHC1_SIZE   0x4000
+#define FSL_IMX25_ESDHC2_ADDR   0x53FBB000
+#define FSL_IMX25_ESDHC2_SIZE   0x4000
 #define FSL_IMX25_GPIO1_ADDR    0x53FCC000
 #define FSL_IMX25_GPIO1_SIZE    0x4000
 #define FSL_IMX25_GPIO2_ADDR    0x53FD0000
@@ -245,5 +252,7 @@ typedef struct FslIMX25State {
 #define FSL_IMX25_GPIO2_IRQ     51
 #define FSL_IMX25_GPIO3_IRQ     16
 #define FSL_IMX25_GPIO4_IRQ     23
+#define FSL_IMX25_ESDHC1_IRQ    9
+#define FSL_IMX25_ESDHC2_IRQ    8
 
 #endif /* FSL_IMX25_H */

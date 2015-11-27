@@ -68,6 +68,11 @@ static void fsl_imx25_init(Object *obj)
         object_initialize(&s->gpio[i], sizeof(s->gpio[i]), TYPE_IMX_GPIO);
         qdev_set_parent_bus(DEVICE(&s->gpio[i]), sysbus_get_default());
     }
+
+    for (i = 0; i < FSL_IMX25_NUM_ESDHCS; i++) {
+        object_initialize(&s->esdhc[i], sizeof(s->esdhc[i]), TYPE_SYSBUS_SDHCI);
+        qdev_set_parent_bus(DEVICE(&s->esdhc[i]), sysbus_get_default());
+    }
 }
 
 static void fsl_imx25_realize(DeviceState *dev, Error **errp)
@@ -241,6 +246,27 @@ static void fsl_imx25_realize(DeviceState *dev, Error **errp)
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->gpio[i]), 0,
                            qdev_get_gpio_in(DEVICE(&s->avic),
                                             gpio_table[i].irq));
+    }
+
+    /* Initialize all eSDHCs */
+    for (i = 0; i < FSL_IMX25_NUM_ESDHCS; i++) {
+        static const struct {
+            hwaddr addr;
+            unsigned int irq;
+        } esdhc_table[FSL_IMX25_NUM_ESDHCS] = {
+            { FSL_IMX25_ESDHC1_ADDR, FSL_IMX25_ESDHC1_IRQ },
+            { FSL_IMX25_ESDHC2_ADDR, FSL_IMX25_ESDHC2_IRQ }
+        };
+
+        object_property_set_bool(OBJECT(&s->esdhc[i]), true, "realized", &err);
+        if (err) {
+            error_propagate(errp, err);
+            return;
+        }
+        sysbus_mmio_map(SYS_BUS_DEVICE(&s->esdhc[i]), 0, esdhc_table[i].addr);
+        sysbus_connect_irq(SYS_BUS_DEVICE(&s->esdhc[i]), 0,
+                           qdev_get_gpio_in(DEVICE(&s->avic),
+                                            esdhc_table[i].irq));
     }
 
     /* initialize 2 x 16 KB ROM */
