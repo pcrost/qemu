@@ -859,10 +859,10 @@ static void arm_load_kernel_notify(Notifier *notifier, void *data)
         is_linux = 1;
     }
     if (kernel_size < 0) {
-        entry = info->loader_start + kernel_load_offset;
+        entry = info->loader_start /* + kernel_load_offset */;
         kernel_size = load_image_targphys(info->kernel_filename, entry,
                                           info->ram_size - kernel_load_offset);
-        is_linux = 1;
+        is_linux = 0;
     }
     if (kernel_size < 0) {
         fprintf(stderr, "qemu: could not load kernel '%s'\n",
