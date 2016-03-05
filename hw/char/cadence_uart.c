@@ -441,7 +441,7 @@ static void cadence_uart_reset(DeviceState *dev)
 {
     CadenceUARTState *s = CADENCE_UART(dev);
 
-    s->r[R_CR] = 0x00000128;
+    s->r[R_CR] = 0x00000118;
     s->r[R_IMR] = 0;
     s->r[R_CISR] = 0;
     s->r[R_RTRIG] = 0x00000020;
